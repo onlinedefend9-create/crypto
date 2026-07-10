@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg-main: #0b0e11;
+  --color-bg-card: #181a20;
+  --color-bg-stat: #1e2329;
+  --color-border-dark: #2b2f36;
+  --color-text-primary: #eaecef;
+  --color-text-secondary: #848e9c;
+  --color-brand-yellow: #f0b90b;
+  --color-price-green: #0ecb81;
+  --color-price-red: #f6465d;
+}
+
+body {
+  background-color: #0b0e11;
+  color: #eaecef;
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
