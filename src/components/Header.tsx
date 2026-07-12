@@ -1,13 +1,13 @@
 import React from "react";
-import { Search, Flame, Coins, Newspaper } from "lucide-react";
+import { Search, Flame, Coins, Newspaper, Cpu, Target, Workflow } from "lucide-react";
 
 interface HeaderProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   currency: string;
   setCurrency: (currency: string) => void;
-  activeTab: "prices" | "news";
-  setActiveTab: (tab: "prices" | "news") => void;
+  activeTab: "prices" | "news" | "ai_trends" | "workflows";
+  setActiveTab: (tab: "prices" | "news" | "ai_trends" | "workflows") => void;
 }
 
 export default function Header({
@@ -23,20 +23,10 @@ export default function Header({
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
         {/* Brand Logotype */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            {/* Custom stylized Coinpaprika logo from the theme */}
-            <div className="w-8 h-8 rounded-lg bg-brand-yellow flex items-center justify-center shadow-lg shadow-black/30">
-              <Flame className="w-5 h-5 text-bg-main" />
-            </div>
+          <div className="flex items-center gap-3">
             <div className="flex flex-col">
-              <span className="font-bold text-xl tracking-tight text-white flex items-center">
-                CoinPaprika <span className="text-text-secondary font-normal ml-1.5 text-base">FR</span>
-                <span className="ml-1.5 px-1.5 py-0.5 text-[9px] bg-brand-yellow/10 text-brand-yellow font-bold uppercase rounded border border-brand-yellow/30 font-mono">
-                  Sleek
-                </span>
-              </span>
-              <span className="text-[11px] text-text-secondary font-mono -mt-1">
-                Marché en direct & Actualités
+              <span className="font-black text-[20px] tracking-wider text-white flex items-center uppercase font-sans">
+                RESUME<span className="text-emerald-400 font-bold ml-1 text-[14px] bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.2 rounded font-mono">FLOW</span>
               </span>
             </div>
           </div>
@@ -45,7 +35,7 @@ export default function Header({
         {/* Localized Tabs & Interactive Filters */}
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
           {/* Navigation Tab Toggle styled with the theme palette */}
-          <div className="flex bg-bg-main p-1 rounded-lg border border-border-dark">
+          <div className="flex bg-bg-main p-1 rounded-lg border border-border-dark flex-wrap sm:flex-nowrap gap-1">
             <button
               onClick={() => setActiveTab("prices")}
               className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all cursor-pointer ${
@@ -67,6 +57,28 @@ export default function Header({
             >
               <Newspaper className="w-4 h-4" />
               <span>Actualités Crypto</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("ai_trends")}
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all cursor-pointer ${
+                activeTab === "ai_trends"
+                  ? "bg-brand-yellow text-bg-main font-bold"
+                  : "text-text-secondary hover:text-text-primary"
+              }`}
+            >
+              <Cpu className="w-4 h-4" />
+              <span>Agents & Modèles IA</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("workflows")}
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all cursor-pointer ${
+                activeTab === "workflows"
+                  ? "bg-brand-yellow text-bg-main font-bold"
+                  : "text-text-secondary hover:text-text-primary"
+              }`}
+            >
+              <Workflow className="w-4 h-4" />
+              <span>Bibliothèque de Workflows</span>
             </button>
           </div>
 

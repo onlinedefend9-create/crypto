@@ -1,6 +1,6 @@
 {
-  "name": "Coinpaprika Clone FR",
-  "description": "Un clone en français de Coinpaprika avec les prix des cryptomonnaies en temps réel, des graphiques interactifs et les actualités crypto analysées par l'IA.",
+  "name": "ResumeFlow",
+  "description": "Portail tactique de surveillance de marché crypto et de cost-intelligence multi-agents IA.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

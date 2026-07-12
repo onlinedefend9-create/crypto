@@ -1,19 +1,27 @@
 import React, { useState } from "react";
-import { Coin } from "../types";
+import { Coin, PriceAlert } from "../types";
 import { formatCurrency, generateSparklinePoints } from "../utils/formatters";
-import { ArrowUpDown, ChevronLeft, ChevronRight, Eye } from "lucide-react";
+import { ArrowUpDown, ChevronLeft, ChevronRight, Eye, Bell } from "lucide-react";
 import { motion } from "motion/react";
 
 interface CryptoTableProps {
   coins: Coin[];
   currency: string;
+  existingAlerts: PriceAlert[];
   onSelectCoin: (coin: Coin) => void;
+  onSetAlert: (coin: Coin) => void;
 }
 
 type SortField = "rank" | "price" | "change_24h" | "market_cap" | "volume_24h";
 type SortOrder = "asc" | "desc";
 
-export default function CryptoTable({ coins, currency, onSelectCoin }: CryptoTableProps) {
+export default function CryptoTable({
+  coins,
+  currency,
+  existingAlerts,
+  onSelectCoin,
+  onSetAlert,
+}: CryptoTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [sortField, setSortField] = useState<SortField>("rank");
@@ -197,13 +205,14 @@ export default function CryptoTable({ coins, currency, onSelectCoin }: CryptoTab
                 </div>
               </th>
               <th className="py-3 px-4 text-center">Tendance 24h</th>
-              <th className="py-3 px-4 text-center w-20">Actions</th>
+              <th className="py-3 px-4 text-center w-24">Actions</th>
             </tr>
           </thead>
           <tbody>
             {currentItems.map((coin, index) => {
               const usdQuote = coin.quotes.USD;
               const isPositive24h = usdQuote.percent_change_24h >= 0;
+              const hasActiveAlert = existingAlerts.some((alert) => alert.coinId === coin.id && alert.isActive);
 
               return (
                 <motion.tr
@@ -290,11 +299,28 @@ export default function CryptoTable({ coins, currency, onSelectCoin }: CryptoTab
                     </div>
                   </td>
 
-                  {/* Fast Action Details Clicker */}
-                  <td className="py-4 px-4 text-center" onClick={(e) => { e.stopPropagation(); onSelectCoin(coin); }}>
-                    <button className="p-1 rounded bg-bg-main border border-border-dark text-text-secondary hover:text-brand-yellow hover:border-brand-yellow/30 transition-colors cursor-pointer">
-                      <Eye className="w-3.5 h-3.5" />
-                    </button>
+                  {/* Fast Action Clickers */}
+                  <td className="py-4 px-4 text-center" onClick={(e) => { e.stopPropagation(); }}>
+                    <div className="flex items-center justify-center gap-1.5">
+                      <button
+                        onClick={() => onSelectCoin(coin)}
+                        className="p-1.5 rounded-lg bg-bg-main border border-border-dark text-text-secondary hover:text-brand-yellow hover:border-brand-yellow/30 transition-all cursor-pointer"
+                        title="Voir les détails"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => onSetAlert(coin)}
+                        className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                          hasActiveAlert
+                            ? "bg-brand-yellow/15 border-brand-yellow text-brand-yellow shadow-sm shadow-brand-yellow/10 animate-pulse"
+                            : "bg-bg-main border-border-dark text-text-secondary hover:text-brand-yellow hover:border-brand-yellow/30"
+                        }`}
+                        title="Définir une alerte de prix"
+                      >
+                        <Bell className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </td>
                 </motion.tr>
               );

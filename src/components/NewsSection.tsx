@@ -7,9 +7,19 @@ interface NewsSectionProps {
   news: NewsArticle[];
   isLoading: boolean;
   onRefresh: () => void;
+  lastFetched?: number | null;
+  title?: string;
+  description?: string;
 }
 
-export default function NewsSection({ news, isLoading, onRefresh }: NewsSectionProps) {
+export default function NewsSection({
+  news,
+  isLoading,
+  onRefresh,
+  lastFetched,
+  title = "Actualités & Décryptage Crypto",
+  description = "Traductions en temps réel et résumés analytiques de l'actualité crypto internationale, propulsés par Gemini 3.5."
+}: NewsSectionProps) {
   const [selectedSentiment, setSelectedSentiment] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
@@ -27,14 +37,14 @@ export default function NewsSection({ news, isLoading, onRefresh }: NewsSectionP
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-bold rounded bg-price-green/10 text-price-green border border-price-green/20 uppercase font-mono">
             <TrendingUp className="w-3 h-3" />
-            <span>Haussier (Positive)</span>
+            <span>Positif</span>
           </span>
         );
       case "négatif":
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-bold rounded bg-price-red/10 text-price-red border border-price-red/20 uppercase font-mono">
             <TrendingDown className="w-3 h-3" />
-            <span>Baissier (Negative)</span>
+            <span>Négatif</span>
           </span>
         );
       default:
@@ -52,15 +62,19 @@ export default function NewsSection({ news, isLoading, onRefresh }: NewsSectionP
       case "bitcoin":
         return "bg-brand-yellow/10 text-brand-yellow border-brand-yellow/20";
       case "altcoins":
+      case "modèles":
         return "bg-blue-500/10 text-blue-400 border-blue-500/20";
       case "régulation":
         return "bg-red-500/10 text-red-400 border-red-500/20";
       case "defi":
+      case "agents":
         return "bg-purple-500/10 text-purple-400 border-purple-500/20";
       case "sécurité":
         return "bg-rose-500/10 text-rose-400 border-rose-500/20";
       case "adoption":
         return "bg-price-green/10 text-price-green border-price-green/20";
+      case "programmation":
+        return "bg-orange-500/10 text-orange-400 border-orange-500/20";
       default:
         return "bg-text-secondary/10 text-text-secondary border-border-dark";
     }
@@ -93,13 +107,29 @@ export default function NewsSection({ news, isLoading, onRefresh }: NewsSectionP
       {/* Header section with smart insights indicator */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-border-dark pb-5">
         <div>
-          <h2 className="text-xl font-extrabold text-text-primary flex items-center gap-2">
-            <Newspaper className="w-5 h-5 text-brand-yellow" />
-            <span>Actualités & Décryptage IA</span>
-          </h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl font-extrabold text-text-primary flex items-center gap-2">
+              <Newspaper className="w-5 h-5 text-brand-yellow" />
+              <span>{title}</span>
+            </h2>
+            <div className="flex items-center gap-1.5 bg-price-green/10 text-price-green text-[9px] font-bold px-2 py-0.5 rounded border border-price-green/20 font-mono">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-price-green opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-price-green"></span>
+              </span>
+              <span>RSS SYNC AUTO</span>
+            </div>
+          </div>
           <p className="text-xs text-text-secondary mt-0.5">
-            Traductions en temps réel et résumés analytiques de l'actualité crypto internationale, propulsés par Gemini 3.5.
+            {description}
           </p>
+          {lastFetched && (
+            <p className="text-[10px] text-text-secondary mt-1 font-mono flex items-center gap-1">
+              <span>Synchronisation arrière-plan active :</span>
+              <span className="text-brand-yellow font-bold">{new Date(lastFetched).toLocaleTimeString()}</span>
+              <span className="text-[9px] text-text-secondary/60">(Toutes les 10 min)</span>
+            </p>
+          )}
         </div>
 
         {/* Filters Panel */}

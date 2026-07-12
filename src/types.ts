@@ -49,3 +49,17 @@ export interface ChartDataPoint {
   date: string;
   price: number;
 }
+
+export interface PriceAlert {
+  id: string;
+  coinId: string;
+  coinName: string;
+  coinSymbol: string;
+  targetPrice: number;
+  condition: "above" | "below";
+  createdAt: string;
+  isActive: boolean;
+  triggeredAt?: string;
+  initialPriceAtCreation: number;
+}
+
