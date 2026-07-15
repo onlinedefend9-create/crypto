@@ -8,9 +8,10 @@ interface GlobalStatsBarProps {
   currency: string;
   onRefresh: () => void;
   isRefreshing: boolean;
+  language?: "fr" | "en";
 }
 
-export default function GlobalStatsBar({ stats, currency, onRefresh, isRefreshing }: GlobalStatsBarProps) {
+export default function GlobalStatsBar({ stats, currency, onRefresh, isRefreshing, language = "fr" }: GlobalStatsBarProps) {
   if (!stats) {
     return (
       <div className="bg-bg-stat text-text-secondary text-xs py-2 px-6 border-b border-border-dark flex justify-between items-center h-8 animate-pulse">
@@ -22,18 +23,35 @@ export default function GlobalStatsBar({ stats, currency, onRefresh, isRefreshin
 
   const isCapPositive = stats.market_cap_change_24h >= 0;
 
+  const t = {
+    fr: {
+      cryptos: "Cryptos:",
+      cap: "Cap. Globale:",
+      vol: "Vol. 24h:",
+      dominance: "Dominance BTC:",
+      refresh: "Actualiser"
+    },
+    en: {
+      cryptos: "Cryptos:",
+      cap: "Global Cap:",
+      vol: "24h Vol:",
+      dominance: "BTC Dominance:",
+      refresh: "Refresh"
+    }
+  }[language];
+
   return (
     <div className="bg-bg-stat text-text-secondary text-[12px] h-auto md:h-8 py-2 md:py-0 px-6 border-b border-border-dark flex flex-wrap gap-y-2 justify-between items-center font-sans">
       <div className="flex flex-wrap items-center gap-x-5 md:gap-x-6">
         <div className="flex items-center gap-1">
-          <span>Cryptos:</span>
+          <span>{t.cryptos}</span>
           <span className="font-semibold text-text-primary font-mono">
             {formatLargeNumber(stats.cryptocurrencies_number)}
           </span>
         </div>
         
         <div className="flex items-center gap-1">
-          <span>Cap. Globale:</span>
+          <span>{t.cap}</span>
           <span className="font-semibold text-text-primary font-mono">
             {formatCurrency(stats.market_cap_usd, currency, 0)}
           </span>
@@ -52,14 +70,14 @@ export default function GlobalStatsBar({ stats, currency, onRefresh, isRefreshin
         </div>
 
         <div className="flex items-center gap-1">
-          <span>Vol. 24h:</span>
+          <span>{t.vol}</span>
           <span className="font-semibold text-price-green font-mono">
             {formatCurrency(stats.volume_24h_usd, currency, 0)}
           </span>
         </div>
 
         <div className="flex items-center gap-1">
-          <span>Dominance BTC:</span>
+          <span>{t.dominance}</span>
           <span className="font-semibold text-brand-yellow font-mono">
             {stats.bitcoin_dominance_percentage.toFixed(1)}%
           </span>
@@ -72,7 +90,7 @@ export default function GlobalStatsBar({ stats, currency, onRefresh, isRefreshin
         title="Actualiser les prix et actualités"
       >
         <RefreshCw className={`w-3 h-3 ${isRefreshing ? "animate-spin text-brand-yellow" : ""}`} />
-        <span>Actualiser</span>
+        <span>{t.refresh}</span>
       </button>
     </div>
   );

@@ -33,9 +33,10 @@ interface ComparisonData {
 
 interface TrendNewsComparerProps {
   type?: "crypto" | "ai";
+  language?: "fr" | "en";
 }
 
-export const TrendNewsComparer: React.FC<TrendNewsComparerProps> = ({ type = "crypto" }) => {
+export const TrendNewsComparer: React.FC<TrendNewsComparerProps> = ({ type = "crypto", language = "fr" }) => {
   const [data, setData] = useState<ComparisonData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +45,9 @@ export const TrendNewsComparer: React.FC<TrendNewsComparerProps> = ({ type = "cr
     try {
       setIsLoading(true);
       setError(null);
-      const endpoint = type === "ai" ? "/api/ai/compare-trends-news" : "/api/compare-trends-news";
+      const endpoint = type === "ai" 
+        ? `/api/ai/compare-trends-news?lang=${language}` 
+        : `/api/compare-trends-news?lang=${language}`;
       const res = await fetch(endpoint);
       if (!res.ok) {
         throw new Error(`Erreur serveur: ${res.status}`);
@@ -53,7 +56,7 @@ export const TrendNewsComparer: React.FC<TrendNewsComparerProps> = ({ type = "cr
       setData(json);
     } catch (err: any) {
       console.error(err);
-      setError("Impossible de charger l'analyse comparative.");
+      setError(language === "en" ? "Unable to load comparison analysis." : "Impossible de charger l'analyse comparative.");
     } finally {
       setIsLoading(false);
     }
@@ -61,7 +64,7 @@ export const TrendNewsComparer: React.FC<TrendNewsComparerProps> = ({ type = "cr
 
   useEffect(() => {
     fetchComparison();
-  }, [type]);
+  }, [type, language]);
 
   // Helper to color-code sentiment
   const getSentimentStyles = (sentiment: string) => {
@@ -94,6 +97,28 @@ export const TrendNewsComparer: React.FC<TrendNewsComparerProps> = ({ type = "cr
     return "text-price-red";
   };
 
+  const getLocalizedTitle = () => {
+    if (language === "en") {
+      return type === "ai" 
+        ? "Confrontation: News vs. Model Value" 
+        : "Confrontation: News vs. Market Trends";
+    }
+    return type === "ai" 
+      ? "Confrontation : News vs. Valeur des Modèles" 
+      : "Confrontation : News vs. Tendances du Marché";
+  };
+
+  const getLocalizedDescription = () => {
+    if (language === "en") {
+      return type === "ai"
+        ? "Instant cognitive analysis measuring the alignment between media hype and perceived value of large language models."
+        : "Instant cognitive analysis measuring the alignment between media hype and real price charts.";
+    }
+    return type === "ai"
+      ? "Analyse cognitive instantanée mesurant l'adéquation entre l'effervescence médiatique et la valeur perçue des grands modèles de langage."
+      : "Analyse cognitive instantanée mesurant l'adéquation entre l'effervescence médiatique et les courbes de prix réelles.";
+  };
+
   return (
     <div id="trend-news-comparer" className="w-full bg-bg-card border border-border-dark rounded-2xl p-6 relative overflow-hidden mt-6">
       {/* Decorative background grid/radial glow */}
@@ -107,26 +132,24 @@ export const TrendNewsComparer: React.FC<TrendNewsComparerProps> = ({ type = "cr
               <ArrowRightLeft className="h-5 w-5 text-brand-yellow" />
             </div>
             <h3 className="text-lg font-bold text-text-primary flex items-center gap-2">
-              {type === "ai" ? "Confrontation : News vs. Valeur des Modèles" : "Confrontation : News vs. Tendances du Marché"}
+              {getLocalizedTitle()}
             </h3>
             <span className="bg-brand-yellow/15 text-brand-yellow text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
-              <Sparkles className="h-2.5 w-2.5" /> IA Synthèse
+              <Sparkles className="h-2.5 w-2.5" /> {language === "en" ? "AI Synthesis" : "IA Synthèse"}
             </span>
           </div>
           <p className="text-xs text-text-secondary mt-1">
-            {type === "ai" 
-              ? "Analyse cognitive instantanée mesurant l'adéquation entre l'effervescence médiatique et la valeur perçue des grands modèles de langage."
-              : "Analyse cognitive instantanée mesurant l'adéquation entre l'effervescence médiatique et les courbes de prix réelles."}
+            {getLocalizedDescription()}
           </p>
         </div>
 
         <button
           onClick={fetchComparison}
           disabled={isLoading}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-bg-main hover:bg-bg-stat text-text-primary border border-border-dark text-xs rounded-lg transition disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-bg-main hover:bg-bg-stat text-text-primary border border-border-dark text-xs rounded-lg transition disabled:opacity-50 select-none"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? "animate-spin" : ""}`} />
-          <span>Recalculer la corrélation</span>
+          <span>{language === "en" ? "Recalculate correlation" : "Recalculer la corrélation"}</span>
         </button>
       </div>
 
@@ -136,17 +159,23 @@ export const TrendNewsComparer: React.FC<TrendNewsComparerProps> = ({ type = "cr
             <div className="animate-spin rounded-full h-12 w-12 border-2 border-brand-yellow/10 border-t-brand-yellow"></div>
             <Zap className="absolute text-brand-yellow h-5 w-5 animate-pulse" />
           </div>
-          <p className="mt-4 text-sm text-text-primary font-medium">Analyse comparative en cours...</p>
-          <p className="text-xs text-text-secondary mt-1">Sondage du marché et filtrage des sentiments médiatiques...</p>
+          <p className="mt-4 text-sm text-text-primary font-medium">
+            {language === "en" ? "Comparative analysis in progress..." : "Analyse comparative en cours..."}
+          </p>
+          <p className="text-xs text-text-secondary mt-1">
+            {language === "en" 
+              ? "Polling the market and filtering media sentiment..." 
+              : "Sondage du marché et filtrage des sentiments médiatiques..."}
+          </p>
         </div>
       ) : error || !data ? (
         <div className="flex flex-col items-center justify-center py-8 text-center text-text-secondary text-sm">
-          <p>{error || "Données indisponibles."}</p>
+          <p>{error || (language === "en" ? "Data unavailable." : "Données indisponibles.")}</p>
           <button
             onClick={fetchComparison}
             className="mt-4 px-4 py-2 bg-brand-yellow text-bg-main font-semibold text-xs rounded-lg transition"
           >
-            Réessayer
+            {language === "en" ? "Retry" : "Réessayer"}
           </button>
         </div>
       ) : (
@@ -182,13 +211,15 @@ export const TrendNewsComparer: React.FC<TrendNewsComparerProps> = ({ type = "cr
                   <span className="text-3xl font-extrabold font-mono text-text-primary">
                     {data.alignmentScore}%
                   </span>
-                  <span className={`text-[10px] font-bold tracking-wide uppercase ${getScoreColor(data.alignmentScore)}`}>
+                  <span className={`text-[10px] font-bold tracking-wide uppercase text-center max-w-[85px] leading-tight ${getScoreColor(data.alignmentScore)}`}>
                     {data.alignmentLabel}
                   </span>
                 </div>
               </div>
               <p className="text-[10px] text-text-secondary mt-2 text-center">
-                {type === "ai" ? "Indice de pertinence IA & Modèles" : "Indice de corrélation News-Marché"}
+                {language === "en"
+                  ? (type === "ai" ? "AI & Models Relevance Index" : "News-Market Correlation Index")
+                  : (type === "ai" ? "Indice de pertinence IA & Modèles" : "Indice de corrélation News-Marché")}
               </p>
             </div>
 
@@ -196,12 +227,14 @@ export const TrendNewsComparer: React.FC<TrendNewsComparerProps> = ({ type = "cr
             <div className="col-span-1 md:col-span-3 space-y-3">
               <div className="flex items-center gap-2 text-brand-yellow">
                 <Lightbulb className="h-4 w-4" />
-                <h4 className="text-xs font-bold uppercase tracking-wider">Note de synthèse cognitive</h4>
+                <h4 className="text-xs font-bold uppercase tracking-wider">
+                  {language === "en" ? "Cognitive Synthesis Report" : "Note de synthèse cognitive"}
+                </h4>
               </div>
               <p className="text-sm text-text-primary leading-relaxed">
                 {data.summary}
               </p>
-              <div className="flex items-center gap-2 text-xs text-text-secondary pt-1.5 border-t border-border-dark/60">
+              <div className="flex items-center gap-2 text-xs text-text-secondary pt-1.5 border-t border-t-border-dark/60">
                 {data.alignmentScore >= 75 ? (
                   <CheckCircle className="h-3.5 w-3.5 text-price-green" />
                 ) : (
@@ -209,12 +242,20 @@ export const TrendNewsComparer: React.FC<TrendNewsComparerProps> = ({ type = "cr
                 )}
                 <span>
                   {data.alignmentScore >= 75 
-                    ? (type === "ai" 
-                        ? "Les modèles et tarifs réagissent de manière rationnelle aux rumeurs et annonces actuelles."
-                        : "Les prix réagissent de manière rationnelle et proportionnelle aux rumeurs et annonces actuelles.")
-                    : (type === "ai"
-                        ? "Divergence de perception détectée. La communauté ignore certains signaux de fond de l'écosystème."
-                        : "Divergence de comportement détectée. Le marché ignore certains signaux clés de l'actualité.")}
+                    ? (language === "en"
+                        ? (type === "ai" 
+                            ? "Models and prices are reacting rationally to current rumors and announcements."
+                            : "Prices are reacting rationally and proportionally to current rumors and announcements.")
+                        : (type === "ai" 
+                            ? "Les modèles et tarifs réagissent de manière rationnelle aux rumeurs et annonces actuelles."
+                            : "Les prix réagissent de manière rationnelle et proportionnelle aux rumeurs et annonces actuelles."))
+                    : (language === "en"
+                        ? (type === "ai"
+                            ? "Perception divergence detected. The community is ignoring some underlying ecosystem signals."
+                            : "Behavior divergence detected. The market is ignoring some key news signals.")
+                        : (type === "ai"
+                            ? "Divergence de perception détectée. La communauté ignore certains signaux de fond de l'écosystème."
+                            : "Divergence de comportement détectée. Le marché ignore certains signaux clés de l'actualité."))}
                 </span>
               </div>
             </div>
@@ -223,7 +264,9 @@ export const TrendNewsComparer: React.FC<TrendNewsComparerProps> = ({ type = "cr
           {/* Breakdown Per Coin */}
           <div>
             <h4 className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-3">
-              {type === "ai" ? "Confrontation par Modèle & Acteur" : "Confrontation par Actif Majeur"}
+              {language === "en"
+                ? (type === "ai" ? "Confrontation by Model & Actor" : "Confrontation by Major Asset")
+                : (type === "ai" ? "Confrontation par Modèle & Acteur" : "Confrontation par Actif Majeur")}
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {data.coins.map((coin) => {
@@ -255,7 +298,7 @@ export const TrendNewsComparer: React.FC<TrendNewsComparerProps> = ({ type = "cr
                       {/* Catalyst Banner */}
                       <div className="bg-bg-card/80 border border-border-dark rounded-lg px-2.5 py-1.5">
                         <span className="text-[9px] text-text-secondary block font-semibold uppercase tracking-wider">
-                          Catalyseur Clé
+                          {language === "en" ? "Key Catalyst" : "Catalyseur Clé"}
                         </span>
                         <span className="text-xs text-brand-yellow font-bold mt-0.5 block">
                           {coin.catalyst}
@@ -269,8 +312,14 @@ export const TrendNewsComparer: React.FC<TrendNewsComparerProps> = ({ type = "cr
                     </div>
 
                     <div className="mt-4 pt-3 border-t border-border-dark/60 flex items-center justify-between text-[10px] text-text-secondary">
-                      <span>{type === "ai" ? "Source : AI Research & RSS" : "Source : Coinpaprika & RSS"}</span>
-                      <span className="text-brand-yellow/80 font-mono">Analyzed live</span>
+                      <span>
+                        {language === "en"
+                          ? (type === "ai" ? "Source: AI Research & RSS" : "Source: Coinpaprika & RSS")
+                          : (type === "ai" ? "Source : AI Research & RSS" : "Source : Coinpaprika & RSS")}
+                      </span>
+                      <span className="text-brand-yellow/80 font-mono">
+                        {language === "en" ? "Analyzed live" : "Analysé en direct"}
+                      </span>
                     </div>
                   </motion.div>
                 );
@@ -285,7 +334,9 @@ export const TrendNewsComparer: React.FC<TrendNewsComparerProps> = ({ type = "cr
             </div>
             <div>
               <h5 className="text-xs font-bold text-brand-yellow uppercase tracking-wider">
-                {type === "ai" ? "Verdict & Synthèse d'Impact IA" : "Verdict & Perspective Arbitrage"}
+                {language === "en"
+                  ? (type === "ai" ? "Verdict & AI Impact Synthesis" : "Verdict & Arbitrage Outlook")
+                  : (type === "ai" ? "Verdict & Synthèse d'Impact IA" : "Verdict & Perspective Arbitrage")}
               </h5>
               <p className="text-xs text-text-primary leading-relaxed mt-1">
                 {data.conclusion}

@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { WorkflowRadarChart } from "./WorkflowRadarChart";
+import NewsSection from "./NewsSection";
+import { NewsArticle } from "../types";
 
 interface WorkflowNode {
   id: string;
@@ -213,10 +215,72 @@ const WORKFLOW_PRESETS: WorkflowPreset[] = [
   }
 ];
 
+const WORKFLOW_NEWS: NewsArticle[] = [
+  {
+    id: "wf-news-1",
+    title: "D’LangChain à LangGraph : La révolution des agents cycliques et persistants",
+    summary: "L’évolution des architectures d'agents autonomes favorise désormais les graphes cycliques et les mécanismes de persistance d’état natifs, remplaçant les chaînes séquentielles rigides par des boucles de rétroaction complexes.",
+    source: "Orchestra Journal",
+    link: "#",
+    pubDate: "il y a 45 minutes",
+    sentiment: "positif",
+    category: "Agents"
+  },
+  {
+    id: "wf-news-2",
+    title: "RAG Multi-Vectoriel & Graph RAG : Repousser les limites de la contextualisation d'entreprise",
+    summary: "Le couplage de bases de données vectorielles et de graphes de connaissances (Graph RAG) permet d'extraire des relations sémantiques profondes, éliminant jusqu'à 95% des hallucinations sur les corpus documentaires denses d'entreprise.",
+    source: "DataVector News",
+    link: "#",
+    pubDate: "il y a 3 heures",
+    sentiment: "positif",
+    category: "RAG"
+  },
+  {
+    id: "wf-news-3",
+    title: "Optimisation de l'inférence : Comment le routage de modèles réduit la facture de 70%",
+    summary: "Les nouveaux pipelines hybrides routent dynamiquement les requêtes simples vers des modèles rapides de type Flash (comme Gemini 1.5 Flash) et ne sollicitent les modèles lourds (R1 ou Claude Sonnet) qu'en cas d'impasse logique.",
+    source: "Inference Tech",
+    link: "#",
+    pubDate: "il y a 5 heures",
+    sentiment: "positif",
+    category: "Modèles"
+  },
+  {
+    id: "wf-news-4",
+    title: "Sécurité des workflows agentiques : Le risque critique d'injection de prompts indirects",
+    summary: "Une nouvelle série d'attaques montre que des agents analysant des documents tiers peuvent être détournés si des instructions malveillantes y sont dissimulées, forçant le déploiement d'observateurs de sécurité d'entrée.",
+    source: "CyberDefense IA",
+    link: "#",
+    pubDate: "il y a 8 heures",
+    sentiment: "négatif",
+    category: "Sécurité"
+  },
+  {
+    id: "wf-news-5",
+    title: "Programmation par démonstration : Les agents apprennent à orchestrer des API complexes",
+    summary: "Les interfaces de programmation visuelle s'effacent devant des techniques où l'agent apprend à orchestrer des API complexes simplement en analysant des sessions d'enregistrement utilisateur et des traces de terminaux.",
+    source: "AI UX Lab",
+    link: "#",
+    pubDate: "il y a 12 heures",
+    sentiment: "positif",
+    category: "Programmation"
+  },
+  {
+    id: "wf-news-6",
+    title: "Revue de gouvernance : Les défis juridiques de l'autonomie décisionnelle des multi-agents",
+    summary: "Qui est responsable de la signature d'un mauvais contrat par un agent autonome ? L'Union européenne prépare une annexe à l'AI Act spécifiquement dédiée aux responsabilités légales des équipages d'agents.",
+    source: "LegisTech Europe",
+    link: "#",
+    pubDate: "il y a 1 jour",
+    sentiment: "neutre",
+    category: "Régulation"
+  }
+];
+
 export default function WorkflowLibrarySection({ searchQuery: externalSearchQuery }: { searchQuery: string }) {
   const [activeCategory, setActiveCategory] = useState<"all" | "rag" | "coder" | "multi_agent" | "reasoning">("all");
   const [selectedPreset, setSelectedPreset] = useState<WorkflowPreset>(WORKFLOW_PRESETS[0]);
-  const [viewMode, setViewMode] = useState<"radar" | "list">("radar");
   
   // Custom prompt state
   const [customPrompt, setCustomPrompt] = useState<string>("");
@@ -231,8 +295,13 @@ export default function WorkflowLibrarySection({ searchQuery: externalSearchQuer
     const preset = WORKFLOW_PRESETS.find(p => p.id === presetId);
     if (preset) {
       setSelectedPreset(preset);
-      // Automatically shift view to simulator list so they can run a test
-      setViewMode("list");
+      // Smoothly scroll to the simulator playground below
+      setTimeout(() => {
+        const simulatorEl = document.getElementById("workflow-simulator");
+        if (simulatorEl) {
+          simulatorEl.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 50);
     }
   };
 
@@ -315,373 +384,364 @@ export default function WorkflowLibrarySection({ searchQuery: externalSearchQuer
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8">
-      {/* Banner / Header */}
-      <div className="mb-8 border border-brand-yellow/20 bg-brand-yellow/5 rounded-2xl p-6 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-brand-yellow/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex items-start gap-4">
-            <div className="p-3 bg-brand-yellow/10 border border-brand-yellow/20 rounded-xl text-brand-yellow shrink-0">
-              <Workflow className="w-6 h-6 animate-pulse" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono text-brand-yellow bg-brand-yellow/10 border border-brand-yellow/20 px-2 py-0.5 rounded uppercase tracking-wider font-semibold">
-                  Espace Bibliothèque de Workflows
-                </span>
-              </div>
-              <h2 className="text-xl font-black text-white uppercase tracking-wider mt-1.5">
-                Modèles de Flux d'Inférence IA
-              </h2>
-              <p className="text-xs text-text-secondary mt-1 max-w-2xl leading-relaxed">
-                Explorez des modèles de workflows structurés par type et fonctionnalité. Testez l'interactivité d'un flux en temps réel et analysez la circulation de l'état sémantique d'un bout à l'autre.
-              </p>
-            </div>
+    <div className="max-w-7xl mx-auto px-6 py-8 space-y-12">
+      {/* Header and Category Filter Row */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border-dark pb-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <Workflow className="w-5 h-5 text-brand-yellow shrink-0 animate-pulse" />
+            <h2 className="text-lg font-black text-white uppercase tracking-wider font-sans">
+              Bibliothèque de Workflows IA
+            </h2>
           </div>
+          <p className="text-xs text-text-secondary mt-1 max-w-xl">
+            Explorez des modèles de workflows structurés par type et fonctionnalité. Testez l'interactivité d'un flux en temps réel et analysez la circulation de l'état sémantique d'un bout à l'autre.
+          </p>
+        </div>
 
-          {/* Quick Categories Filter */}
-          <div className="flex flex-wrap bg-bg-card p-1 rounded-lg border border-border-dark shrink-0 self-start md:self-auto">
-            <button
-              onClick={() => setActiveCategory("all")}
-              className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all cursor-pointer ${
-                activeCategory === "all"
-                  ? "bg-brand-yellow text-bg-main font-bold"
-                  : "text-text-secondary hover:text-text-primary"
-              }`}
-            >
-              Tous
-            </button>
-            <button
-              onClick={() => setActiveCategory("rag")}
-              className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all cursor-pointer ${
-                activeCategory === "rag"
-                  ? "bg-brand-yellow text-bg-main font-bold"
-                  : "text-text-secondary hover:text-text-primary"
-              }`}
-            >
-              RAG
-            </button>
-            <button
-              onClick={() => setActiveCategory("coder")}
-              className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all cursor-pointer ${
-                activeCategory === "coder"
-                  ? "bg-brand-yellow text-bg-main font-bold"
-                  : "text-text-secondary hover:text-text-primary"
-              }`}
-            >
-              Agentique
-            </button>
-            <button
-              onClick={() => setActiveCategory("multi_agent")}
-              className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all cursor-pointer ${
-                activeCategory === "multi_agent"
-                  ? "bg-brand-yellow text-bg-main font-bold"
-                  : "text-text-secondary hover:text-text-primary"
-              }`}
-            >
-              Multi-Agent
-            </button>
-            <button
-              onClick={() => setActiveCategory("reasoning")}
-              className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all cursor-pointer ${
-                activeCategory === "reasoning"
-                  ? "bg-brand-yellow text-bg-main font-bold"
-                  : "text-text-secondary hover:text-text-primary"
-              }`}
-            >
-              Raisonnement
-            </button>
-          </div>
+        {/* Quick Categories Filter */}
+        <div className="flex flex-wrap bg-bg-card p-1 rounded-lg border border-border-dark shrink-0 self-start md:self-auto">
+          <button
+            onClick={() => setActiveCategory("all")}
+            className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all cursor-pointer ${
+              activeCategory === "all"
+                ? "bg-brand-yellow text-bg-main font-bold"
+                : "text-text-secondary hover:text-text-primary"
+            }`}
+          >
+            Tous
+          </button>
+          <button
+            onClick={() => setActiveCategory("rag")}
+            className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all cursor-pointer ${
+              activeCategory === "rag"
+                ? "bg-brand-yellow text-bg-main font-bold"
+                : "text-text-secondary hover:text-text-primary"
+            }`}
+          >
+            RAG
+          </button>
+          <button
+            onClick={() => setActiveCategory("coder")}
+            className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all cursor-pointer ${
+              activeCategory === "coder"
+                ? "bg-brand-yellow text-bg-main font-bold"
+                : "text-text-secondary hover:text-text-primary"
+            }`}
+          >
+            Agentique
+          </button>
+          <button
+            onClick={() => setActiveCategory("multi_agent")}
+            className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all cursor-pointer ${
+              activeCategory === "multi_agent"
+                ? "bg-brand-yellow text-bg-main font-bold"
+                : "text-text-secondary hover:text-text-primary"
+            }`}
+          >
+            Multi-Agent
+          </button>
+          <button
+            onClick={() => setActiveCategory("reasoning")}
+            className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all cursor-pointer ${
+              activeCategory === "reasoning"
+                ? "bg-brand-yellow text-bg-main font-bold"
+                : "text-text-secondary hover:text-text-primary"
+            }`}
+          >
+            Raisonnement
+          </button>
         </div>
       </div>
 
-      {/* View Switcher Tabs */}
-      <div className="flex border-b border-border-dark mb-6">
-        <button
-          onClick={() => setViewMode("radar")}
-          className={`px-5 py-3 border-b-2 font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer ${
-            viewMode === "radar"
-              ? "border-brand-yellow text-brand-yellow font-black"
-              : "border-transparent text-text-secondary hover:text-text-primary"
-          }`}
-        >
-          <Brain className="w-4 h-4 text-brand-yellow" />
-          Radar Topologique
-        </button>
-        <button
-          onClick={() => setViewMode("list")}
-          className={`px-5 py-3 border-b-2 font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer ${
-            viewMode === "list"
-              ? "border-brand-yellow text-brand-yellow font-black"
-              : "border-transparent text-text-secondary hover:text-text-primary"
-          }`}
-        >
-          <Sliders className="w-4 h-4 text-brand-yellow" />
-          Simulateur Interactif
-        </button>
-      </div>
-
-      {viewMode === "radar" ? (
+      {/* SECTION 1: Workflow Radar Chart / Circular Dendrogram */}
+      <div>
         <WorkflowRadarChart
           onSelectPreset={handleSelectPresetFromRadar}
           selectedPresetId={selectedPreset.id}
         />
-      ) : (
-        /* Main split-screen grid */
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
-        {/* Left column: Preset Selection list */}
-        <div className="lg:col-span-5 flex flex-col gap-4">
-          <div className="flex justify-between items-center px-2">
-            <span className="text-[11px] font-bold text-text-primary uppercase tracking-wider font-mono">
-              Modèles Disponibles ({filteredPresets.length})
-            </span>
-            {externalSearchQuery && (
-              <span className="text-[10px] text-brand-yellow font-mono italic">
-                Filtre de recherche actif
-              </span>
-            )}
+      </div>
+
+      {/* SECTION 2: Interactive Simulator */}
+      <div id="workflow-simulator" className="pt-8 border-t border-border-dark scroll-mt-20">
+        <div className="mb-6">
+          <div className="flex items-center gap-2">
+            <Sliders className="h-4 w-4 text-brand-yellow shrink-0" />
+            <h3 className="text-sm font-black text-white uppercase tracking-wider font-mono">
+              Simulateur Interactif & Console de Trace
+            </h3>
           </div>
-
-          <div className="flex flex-col gap-3 max-h-[600px] overflow-y-auto pr-1">
-            {filteredPresets.map((preset) => {
-              const isActive = selectedPreset.id === preset.id;
-              const cost = calculateCost(preset);
-              
-              return (
-                <button
-                  key={preset.id}
-                  onClick={() => setSelectedPreset(preset)}
-                  className={`p-4 rounded-xl border text-left transition-all cursor-pointer relative overflow-hidden group ${
-                    isActive
-                      ? "bg-bg-card border-brand-yellow shadow-lg shadow-brand-yellow/5"
-                      : "bg-bg-card/70 border-border-dark hover:border-brand-yellow/30 text-text-secondary hover:text-white"
-                  }`}
-                >
-                  <div className="flex justify-between items-start mb-2.5">
-                    <span className="text-[9px] font-extrabold tracking-widest uppercase px-2 py-0.5 rounded border border-brand-yellow/20 bg-brand-yellow/5 text-brand-yellow">
-                      {preset.categoryLabel}
-                    </span>
-                    <span className="text-[10px] font-mono text-text-secondary">
-                      Coût: <strong className="text-white font-bold">${cost}</strong>/run
-                    </span>
-                  </div>
-
-                  <h3 className={`text-xs font-black uppercase tracking-wide group-hover:text-brand-yellow transition-colors ${
-                    isActive ? "text-brand-yellow" : "text-white"
-                  }`}>
-                    {preset.name}
-                  </h3>
-
-                  <p className="text-[11px] text-text-secondary leading-relaxed mt-1.5 line-clamp-2">
-                    {preset.description}
-                  </p>
-
-                  <div className="mt-3 pt-2.5 border-t border-border-dark/60 flex items-center justify-between text-[10px] font-mono">
-                    <span className="text-text-secondary">
-                      Conseil: <span className="text-white">{preset.recommendedModel}</span>
-                    </span>
-                    <span className="flex items-center gap-1 text-text-primary">
-                      Complexité: 
-                      <strong className={`px-1.5 py-0.2 rounded text-[9px] ${
-                        preset.cognitiveCost === "Bas" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" :
-                        preset.cognitiveCost === "Moyen" ? "bg-blue-500/10 text-blue-400 border border-blue-500/20" :
-                        preset.cognitiveCost === "Élevé" ? "bg-orange-500/10 text-orange-400 border border-orange-500/20" :
-                        "bg-red-500/10 text-red-400 border border-red-500/20"
-                      }`}>
-                        {preset.cognitiveCost}
-                      </strong>
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
-
-            {filteredPresets.length === 0 && (
-              <div className="bg-bg-card border border-border-dark rounded-xl p-8 text-center text-text-secondary">
-                <AlertCircle className="w-8 h-8 mx-auto text-brand-yellow mb-2 opacity-60" />
-                <p className="text-xs">Aucun modèle de workflow ne correspond à vos filtres actuels.</p>
-                <button 
-                  onClick={() => { setActiveCategory("all"); }}
-                  className="text-xs text-brand-yellow underline mt-2 font-bold cursor-pointer"
-                >
-                  Réinitialiser les filtres
-                </button>
-              </div>
-            )}
-          </div>
+          <p className="text-xs text-text-secondary mt-1">
+            Choisissez un modèle ci-dessous, personnalisez votre consigne d'entrée, puis lancez la simulation pas à pas de l'exécution agentique.
+          </p>
         </div>
 
-        {/* Right column: Interactive Flow & Simulation */}
-        <div className="lg:col-span-7 flex flex-col gap-6">
-          {/* Active Workflow details panel */}
-          <div className="bg-bg-card border border-border-dark rounded-2xl p-6 shadow-xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-brand-yellow/5 rounded-full blur-2xl pointer-events-none" />
-            
-            <div className="flex justify-between items-center border-b border-border-dark/60 pb-3 mb-4">
-              <span className="text-xs font-black uppercase tracking-wider text-brand-yellow font-mono">
-                Topologie Logique du Graphe
+        {/* Main split-screen grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          {/* Left column: Preset Selection list */}
+          <div className="lg:col-span-5 flex flex-col gap-4">
+            <div className="flex justify-between items-center px-2">
+              <span className="text-[11px] font-bold text-text-primary uppercase tracking-wider font-mono">
+                Modèles Disponibles ({filteredPresets.length})
               </span>
-              <span className="text-[10px] font-mono text-text-secondary">
-                Modèle recommandé: <strong className="text-white">{selectedPreset.recommendedModel}</strong>
-              </span>
-            </div>
-
-            <p className="text-xs text-text-secondary leading-relaxed mb-6">
-              {selectedPreset.description}
-            </p>
-
-            {/* Dynamic Graph Layout */}
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 relative py-4 bg-bg-main/60 rounded-xl border border-border-dark/40 p-4 mb-6">
-              {selectedPreset.nodes.map((node, idx) => {
-                const isNodeActive = activeNodeId === node.id;
-                
-                return (
-                  <div key={node.id} className="relative flex flex-col items-center">
-                    {/* Visual Connector arrow on medium+ screens */}
-                    {idx < selectedPreset.nodes.length - 1 && (
-                      <div className="hidden sm:block absolute top-[24px] left-[calc(50%+30px)] right-[calc(-50%+30px)] h-[1px] bg-gradient-to-r from-brand-yellow/30 to-brand-yellow/5 z-0" />
-                    )}
-
-                    {/* Node Visual Card */}
-                    <div className={`w-full bg-bg-card border rounded-xl p-3 text-center relative z-10 transition-all duration-300 ${
-                      isNodeActive
-                        ? "border-brand-yellow shadow-lg shadow-brand-yellow/10 scale-105"
-                        : "border-border-dark hover:border-brand-yellow/20"
-                    }`}>
-                      {/* Active glow indicator */}
-                      {isNodeActive && (
-                        <span className="absolute -top-1 -right-1 flex h-2 w-2">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-yellow opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-yellow"></span>
-                        </span>
-                      )}
-
-                      <span className="text-[8px] font-mono text-brand-yellow uppercase tracking-widest font-black block">
-                        Nœud {idx + 1}
-                      </span>
-                      <h4 className="text-[10px] font-bold text-white uppercase mt-1 truncate">
-                        {node.label}
-                      </h4>
-                      <p className="text-[9px] text-text-secondary mt-0.5 leading-tight font-mono truncate">
-                        {node.role}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Prompts and interactive simulator runner */}
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <label className="text-[10px] text-text-secondary uppercase tracking-wider font-semibold font-mono">
-                  Sélectionner ou Écrire une consigne d'entrée :
-                </label>
-                <button
-                  onClick={() => {
-                    const idx = Math.floor(Math.random() * selectedPreset.samplePrompts.length);
-                    setCustomPrompt(selectedPreset.samplePrompts[idx]);
-                  }}
-                  className="text-[10px] text-brand-yellow hover:underline cursor-pointer flex items-center gap-1"
-                >
-                  <RefreshCw className="w-3 h-3" />
-                  Aléatoire
-                </button>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-3">
-                <input
-                  type="text"
-                  value={customPrompt}
-                  onChange={(e) => setCustomPrompt(e.target.value)}
-                  placeholder="Ex: Écrire une consigne de test..."
-                  className="flex-1 bg-bg-main border border-border-dark text-xs text-white rounded-xl p-3 outline-none focus:ring-1 focus:ring-brand-yellow placeholder-text-secondary"
-                  disabled={isSimulating}
-                />
-                
-                <button
-                  onClick={handleStartSimulation}
-                  disabled={isSimulating}
-                  className={`px-5 py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shrink-0 ${
-                    isSimulating
-                      ? "bg-bg-stat border border-border-dark text-text-secondary cursor-not-allowed"
-                      : "bg-brand-yellow text-bg-main hover:bg-brand-yellow/90 cursor-pointer shadow-lg shadow-brand-yellow/10"
-                  }`}
-                >
-                  {isSimulating ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      Simulation...
-                    </>
-                  ) : (
-                    <>
-                      <Play className="w-4 h-4 shrink-0 fill-current" />
-                      Lancer
-                    </>
-                  )}
-                </button>
-              </div>
-
-              {/* Sample Prompts quick chips */}
-              <div className="flex flex-wrap gap-1.5">
-                {selectedPreset.samplePrompts.map((p, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setCustomPrompt(p)}
-                    disabled={isSimulating}
-                    className="text-[9px] text-text-secondary bg-bg-stat hover:text-white px-2 py-1 rounded border border-border-dark/60 cursor-pointer transition-colors"
-                  >
-                    {p}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Interactive Log Console terminal */}
-          <div className="bg-slate-950 border border-border-dark rounded-2xl overflow-hidden shadow-2xl">
-            <div className="bg-slate-900 px-4 py-2.5 flex items-center justify-between border-b border-border-dark/60">
-              <div className="flex items-center gap-2">
-                <Terminal className="w-4 h-4 text-brand-yellow" />
-                <span className="text-[10px] font-mono text-white font-bold tracking-wider uppercase">
-                  Terminal de Trace d'Inférence
+              {externalSearchQuery && (
+                <span className="text-[10px] text-brand-yellow font-mono italic">
+                  Filtre de recherche actif
                 </span>
-              </div>
-              <div className="flex items-center gap-1.5 text-[9px] text-brand-yellow font-mono">
-                <span className={`w-1.5 h-1.5 rounded-full bg-brand-yellow ${isSimulating ? "animate-pulse" : ""}`} />
-                <span>{isSimulating ? "TRACEUR ACTIF" : "CONSOLE PRÊTE"}</span>
-              </div>
+              )}
             </div>
 
-            <div className="p-4 font-mono text-[10px] leading-relaxed min-h-[180px] max-h-[250px] overflow-y-auto space-y-2 select-text bg-slate-950/95">
-              {simulatedLogs.map((log, idx) => {
-                const isFirst = idx === 0;
-                const isLast = idx === simulatedLogs.length - 1 && !isSimulating;
+            <div className="flex flex-col gap-3 max-h-[600px] overflow-y-auto pr-1">
+              {filteredPresets.map((preset) => {
+                const isActive = selectedPreset.id === preset.id;
+                const cost = calculateCost(preset);
+                
                 return (
-                  <div 
-                    key={idx} 
-                    className={`transition-opacity duration-300 ${
-                      isLast ? "text-emerald-400 font-bold" : isFirst ? "text-brand-yellow" : "text-slate-300"
+                  <button
+                    key={preset.id}
+                    onClick={() => setSelectedPreset(preset)}
+                    className={`p-4 rounded-xl border text-left transition-all cursor-pointer relative overflow-hidden group ${
+                      isActive
+                        ? "bg-bg-card border-brand-yellow shadow-lg shadow-brand-yellow/5"
+                        : "bg-bg-card/70 border-border-dark hover:border-brand-yellow/30 text-text-secondary hover:text-white"
                     }`}
                   >
-                    {log}
-                  </div>
+                    <div className="flex justify-between items-start mb-2.5">
+                      <span className="text-[9px] font-extrabold tracking-widest uppercase px-2 py-0.5 rounded border border-brand-yellow/20 bg-brand-yellow/5 text-brand-yellow">
+                        {preset.categoryLabel}
+                      </span>
+                      <span className="text-[10px] font-mono text-text-secondary">
+                        Coût: <strong className="text-white font-bold">${cost}</strong>/run
+                      </span>
+                    </div>
+
+                    <h3 className={`text-xs font-black uppercase tracking-wide group-hover:text-brand-yellow transition-colors ${
+                      isActive ? "text-brand-yellow" : "text-white"
+                    }`}>
+                      {preset.name}
+                    </h3>
+
+                    <p className="text-[11px] text-text-secondary leading-relaxed mt-1.5 line-clamp-2">
+                      {preset.description}
+                    </p>
+
+                    <div className="mt-3 pt-2.5 border-t border-border-dark/60 flex items-center justify-between text-[10px] font-mono">
+                      <span className="text-text-secondary">
+                        Conseil: <span className="text-white">{preset.recommendedModel}</span>
+                      </span>
+                      <span className="flex items-center gap-1 text-text-primary">
+                        Complexité: 
+                        <strong className={`px-1.5 py-0.2 rounded text-[9px] ${
+                          preset.cognitiveCost === "Bas" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" :
+                          preset.cognitiveCost === "Moyen" ? "bg-blue-500/10 text-blue-400 border border-blue-500/20" :
+                          preset.cognitiveCost === "Élevé" ? "bg-orange-500/10 text-orange-400 border border-orange-500/20" :
+                          "bg-red-500/10 text-red-400 border border-red-500/20"
+                        }`}>
+                          {preset.cognitiveCost}
+                        </strong>
+                      </span>
+                    </div>
+                  </button>
                 );
               })}
 
-              {simulatedLogs.length === 0 && (
-                <div className="h-full flex flex-col items-center justify-center text-slate-500 py-8 text-center">
-                  <Terminal className="w-8 h-8 text-slate-700 mb-1" />
-                  <p className="italic">Les logs s'afficheront ici lors du lancement de la simulation.</p>
+              {filteredPresets.length === 0 && (
+                <div className="bg-bg-card border border-border-dark rounded-xl p-8 text-center text-text-secondary">
+                  <AlertCircle className="w-8 h-8 mx-auto text-brand-yellow mb-2 opacity-60" />
+                  <p className="text-xs">Aucun modèle de workflow ne correspond à vos filtres actuels.</p>
+                  <button 
+                    onClick={() => { setActiveCategory("all"); }}
+                    className="text-xs text-brand-yellow underline mt-2 font-bold cursor-pointer"
+                  >
+                    Réinitialiser les filtres
+                  </button>
                 </div>
               )}
             </div>
           </div>
-        </div>
+
+          {/* Right column: Interactive Flow & Simulation */}
+          <div className="lg:col-span-7 flex flex-col gap-6">
+            {/* Active Workflow details panel */}
+            <div className="bg-bg-card border border-border-dark rounded-2xl p-6 shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-brand-yellow/5 rounded-full blur-2xl pointer-events-none" />
+              
+              <div className="flex justify-between items-center border-b border-border-dark/60 pb-3 mb-4">
+                <span className="text-xs font-black uppercase tracking-wider text-brand-yellow font-mono">
+                  Topologie Logique du Graphe
+                </span>
+                <span className="text-[10px] font-mono text-text-secondary">
+                  Modèle recommandé: <strong className="text-white">{selectedPreset.recommendedModel}</strong>
+                </span>
+              </div>
+
+              <p className="text-xs text-text-secondary leading-relaxed mb-6">
+                {selectedPreset.description}
+              </p>
+
+              {/* Dynamic Graph Layout */}
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 relative py-4 bg-bg-main/60 rounded-xl border border-border-dark/40 p-4 mb-6">
+                {selectedPreset.nodes.map((node, idx) => {
+                  const isNodeActive = activeNodeId === node.id;
+                  
+                  return (
+                    <div key={node.id} className="relative flex flex-col items-center">
+                      {/* Visual Connector arrow on medium+ screens */}
+                      {idx < selectedPreset.nodes.length - 1 && (
+                        <div className="hidden sm:block absolute top-[24px] left-[calc(50%+30px)] right-[calc(-50%+30px)] h-[1px] bg-gradient-to-r from-brand-yellow/30 to-brand-yellow/5 z-0" />
+                      )}
+
+                      {/* Node Visual Card */}
+                      <div className={`w-full bg-bg-card border rounded-xl p-3 text-center relative z-10 transition-all duration-300 ${
+                        isNodeActive
+                          ? "border-brand-yellow shadow-lg shadow-brand-yellow/10 scale-105"
+                          : "border-border-dark hover:border-brand-yellow/20"
+                      }`}>
+                        {/* Active glow indicator */}
+                        {isNodeActive && (
+                          <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-yellow opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-yellow"></span>
+                          </span>
+                        )}
+
+                        <span className="text-[8px] font-mono text-brand-yellow uppercase tracking-widest font-black block">
+                          Nœud {idx + 1}
+                        </span>
+                        <h4 className="text-[10px] font-bold text-white uppercase mt-1 truncate">
+                          {node.label}
+                        </h4>
+                        <p className="text-[9px] text-text-secondary mt-0.5 leading-tight font-mono truncate">
+                          {node.role}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Prompts and interactive simulator runner */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] text-text-secondary uppercase tracking-wider font-semibold font-mono">
+                    Sélectionner ou Écrire une consigne d'entrée :
+                  </label>
+                  <button
+                    onClick={() => {
+                      const idx = Math.floor(Math.random() * selectedPreset.samplePrompts.length);
+                      setCustomPrompt(selectedPreset.samplePrompts[idx]);
+                    }}
+                    className="text-[10px] text-brand-yellow hover:underline cursor-pointer flex items-center gap-1"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    Aléatoire
+                  </button>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <input
+                    type="text"
+                    value={customPrompt}
+                    onChange={(e) => setCustomPrompt(e.target.value)}
+                    placeholder="Ex: Écrire une consigne de test..."
+                    className="flex-1 bg-bg-main border border-border-dark text-xs text-white rounded-xl p-3 outline-none focus:ring-1 focus:ring-brand-yellow placeholder-text-secondary"
+                    disabled={isSimulating}
+                  />
+                  
+                  <button
+                    onClick={handleStartSimulation}
+                    disabled={isSimulating}
+                    className={`px-5 py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shrink-0 ${
+                      isSimulating
+                        ? "bg-bg-stat border border-border-dark text-text-secondary cursor-not-allowed"
+                        : "bg-brand-yellow text-bg-main hover:bg-brand-yellow/90 cursor-pointer shadow-lg shadow-brand-yellow/10"
+                    }`}
+                  >
+                    {isSimulating ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        Simulation...
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-4 h-4 shrink-0 fill-current" />
+                        Lancer
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Sample Prompts quick chips */}
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedPreset.samplePrompts.map((p, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCustomPrompt(p)}
+                      disabled={isSimulating}
+                      className="text-[9px] text-text-secondary bg-bg-stat hover:text-white px-2 py-1 rounded border border-border-dark/60 cursor-pointer transition-colors"
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Interactive Log Console terminal */}
+            <div className="bg-slate-950 border border-border-dark rounded-2xl overflow-hidden shadow-2xl">
+              <div className="bg-slate-900 px-4 py-2.5 flex items-center justify-between border-b border-border-dark/60">
+                <div className="flex items-center gap-2">
+                  <Terminal className="w-4 h-4 text-brand-yellow" />
+                  <span className="text-[10px] font-mono text-white font-bold tracking-wider uppercase">
+                    Terminal de Trace d'Inférence
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 text-[9px] text-brand-yellow font-mono">
+                  <span className={`w-1.5 h-1.5 rounded-full bg-brand-yellow ${isSimulating ? "animate-pulse" : ""}`} />
+                  <span>{isSimulating ? "TRACEUR ACTIF" : "CONSOLE PRÊTE"}</span>
+                </div>
+              </div>
+
+              <div className="p-4 font-mono text-[10px] leading-relaxed min-h-[180px] max-h-[250px] overflow-y-auto space-y-2 select-text bg-slate-950/95">
+                {simulatedLogs.map((log, idx) => {
+                  const isFirst = idx === 0;
+                  const isLast = idx === simulatedLogs.length - 1 && !isSimulating;
+                  return (
+                    <div 
+                      key={idx} 
+                      className={`transition-opacity duration-300 ${
+                        isLast ? "text-emerald-400 font-bold" : isFirst ? "text-brand-yellow" : "text-slate-300"
+                      }`}
+                    >
+                      {log}
+                    </div>
+                  );
+                })}
+
+                {simulatedLogs.length === 0 && (
+                  <div className="h-full flex flex-col items-center justify-center text-slate-500 py-8 text-center">
+                    <Terminal className="w-8 h-8 text-slate-700 mb-1" />
+                    <p className="italic">Les logs s'afficheront ici lors du lancement de la simulation.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
 
         </div>
-      )}
+      </div>
+
+      {/* SECTION 3: Workflow News Section */}
+      <div className="border-t border-border-dark pt-8">
+        <NewsSection
+          news={WORKFLOW_NEWS}
+          isLoading={false}
+          onRefresh={() => {}}
+          title="Fils d'Actualités - Workflows IA"
+          description="Actualités récentes sur l'orchestration sémantique d'agents, architectures logiques et nouvelles topologies cognitives."
+        />
+      </div>
     </div>
   );
 }

@@ -10,6 +10,7 @@ import { TrendNewsComparer } from "./components/TrendNewsComparer";
 import CoinDetailModal from "./components/CoinDetailModal";
 import PriceAlertModal from "./components/PriceAlertModal";
 import WorkflowLibrarySection from "./components/WorkflowLibrarySection";
+import PlayToEarnSection from "./components/PlayToEarnSection";
 import { formatCurrency } from "./utils/formatters";
 import { TrendingUp, TrendingDown, RefreshCw, AlertTriangle, HelpCircle, Shield, Award, Bell, X, Coins, Newspaper, Cpu, Workflow, Sliders } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
@@ -22,7 +23,8 @@ export default function App() {
   
   const [searchQuery, setSearchQuery] = useState("");
   const [currency, setCurrency] = useState<string>("USD");
-  const [activeTab, setActiveTab] = useState<"prices" | "news" | "ai_trends" | "workflows">("prices");
+  const [language, setLanguage] = useState<"fr" | "en">("fr");
+  const [activeTab, setActiveTab] = useState<"prices" | "news" | "ai_trends" | "workflows" | "p2e">("prices");
   const [selectedCoin, setSelectedCoin] = useState<Coin | null>(null);
 
   // Price Alert states
@@ -49,6 +51,8 @@ export default function App() {
   const [isLoadingNews, setIsLoadingNews] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isFallbackMode, setIsFallbackMode] = useState(false);
+  const [showWarningBanner, setShowWarningBanner] = useState(true);
 
   // Core Data Fetchers
   const fetchCoins = async () => {
@@ -65,12 +69,15 @@ export default function App() {
       const result = await res.json();
       if (result && Array.isArray(result.data)) {
         setCoins(result.data);
+        setError(null);
+        setIsFallbackMode(result.source === "fallback");
       } else {
         throw new Error("Impossible de charger le flux des prix des cryptos");
       }
     } catch (err: any) {
       console.error("Failed to load tickers:", err);
       setError("Erreur de connexion au serveur de prix. Veuillez réessayer.");
+      setIsFallbackMode(false);
     } finally {
       setIsLoadingCoins(false);
     }
@@ -98,10 +105,10 @@ export default function App() {
     }
   };
 
-  const fetchNews = async () => {
+  const fetchNews = async (currentLang = language) => {
     try {
       setIsLoadingNews(true);
-      const res = await fetch("/api/news");
+      const res = await fetch(`/api/news?lang=${currentLang}`);
       if (!res.ok) {
         throw new Error(`Server status: ${res.status}`);
       }
@@ -123,10 +130,10 @@ export default function App() {
     }
   };
 
-  const fetchRadar = async (activeCoins = selectedRadarCoins) => {
+  const fetchRadar = async (activeCoins = selectedRadarCoins, currentLang = language) => {
     try {
       setIsLoadingRadar(true);
-      const res = await fetch(`/api/radar?coins=${activeCoins.join(",")}`);
+      const res = await fetch(`/api/radar?coins=${activeCoins.join(",")}&lang=${currentLang}`);
       if (!res.ok) {
         throw new Error(`Server status: ${res.status}`);
       }
@@ -141,10 +148,10 @@ export default function App() {
     }
   };
 
-  const fetchAiNews = async () => {
+  const fetchAiNews = async (currentLang = language) => {
     try {
       setIsLoadingAiNews(true);
-      const res = await fetch("/api/ai/news");
+      const res = await fetch(`/api/ai/news?lang=${currentLang}`);
       if (!res.ok) {
         throw new Error(`Server status: ${res.status}`);
       }
@@ -162,10 +169,10 @@ export default function App() {
     }
   };
 
-  const fetchAiRadar = async (activeModels = selectedAiRadarModels) => {
+  const fetchAiRadar = async (activeModels = selectedAiRadarModels, currentLang = language) => {
     try {
       setIsLoadingAiRadar(true);
-      const res = await fetch(`/api/ai/radar?coins=${activeModels.join(",")}`);
+      const res = await fetch(`/api/ai/radar?coins=${activeModels.join(",")}&lang=${currentLang}`);
       if (!res.ok) {
         throw new Error(`Server status: ${res.status}`);
       }
@@ -182,35 +189,41 @@ export default function App() {
 
   const handleSelectedRadarCoinsChange = (newCoins: string[]) => {
     setSelectedRadarCoins(newCoins);
-    fetchRadar(newCoins);
+    fetchRadar(newCoins, language);
   };
 
   const handleSelectedAiRadarModelsChange = (newModels: string[]) => {
     setSelectedAiRadarModels(newModels);
-    fetchAiRadar(newModels);
+    fetchAiRadar(newModels, language);
   };
 
   // Synchronized refresh trigger
   const handleRefresh = async () => {
     setIsRefreshing(true);
     setError(null);
+    setIsFallbackMode(false);
+    setShowWarningBanner(true);
     if (activeTab === "ai_trends") {
-      await Promise.all([fetchAiNews(), fetchAiRadar(selectedAiRadarModels)]);
+      await Promise.all([fetchAiNews(language), fetchAiRadar(selectedAiRadarModels, language)]);
     } else {
-      await Promise.all([fetchCoins(), fetchGlobalStats(), fetchNews(), fetchRadar(selectedRadarCoins)]);
+      await Promise.all([fetchCoins(), fetchGlobalStats(), fetchNews(language), fetchRadar(selectedRadarCoins, language)]);
     }
     setIsRefreshing(false);
   };
 
-  // Initial Data Load
+  // Language-independent Core Data Load
   useEffect(() => {
     fetchCoins();
     fetchGlobalStats();
-    fetchNews();
-    fetchRadar(["BTC", "ETH", "SOL"]);
-    fetchAiNews();
-    fetchAiRadar(["Gemini", "Claude", "GPT-4", "DeepSeek", "Llama", "Qwen"]);
   }, []);
+
+  // Language-dependent Data Load (fires on mount AND when language toggles)
+  useEffect(() => {
+    fetchNews(language);
+    fetchRadar(selectedRadarCoins, language);
+    fetchAiNews(language);
+    fetchAiRadar(selectedAiRadarModels, language);
+  }, [language]);
 
   // Play dynamic synthetic beep using Web Audio API
   const playNotificationSound = () => {
@@ -346,6 +359,41 @@ export default function App() {
     );
   });
 
+  const footerT = {
+    fr: {
+      col1Desc: "Une plateforme complète de suivi d'actifs numériques. Clone d'apprentissage localisé en français avec données synthétisées en continu.",
+      col1Copyright: "© 2026 Coinpaprika Clone FR. Tous droits réservés.",
+      col2Nav: "Navigation",
+      tabPrices: "Prix des Cryptos",
+      tabNews: "Actualités Crypto",
+      tabAi: "Agents & Modèles IA",
+      tabWorkflows: "Workflows IA",
+      col3Title: "Responsabilité",
+      col3Desc: "Les prix et actualités sont fournis uniquement à titre indicatif et éducatif. Aucun élément présenté sur ce site ne constitue un conseil en investissement.",
+      col4Title: "Technologies",
+      col5Title: "À propos",
+      col5Desc: "Ce clone reproduit l'identité visuelle de la version française de Coinpaprika, avec des optimisations techniques pour la fluidité d'affichage mobile et de bureau.",
+      netWarnTitle: "Avertissement réseau",
+      netWarnDesc: "Le serveur Coinpaprika officiel est temporairement ralenti ou le quota est restreint. Des données de secours réalistes sont actuellement servies pour assurer un service ininterrompu."
+    },
+    en: {
+      col1Desc: "A complete platform for tracking digital assets. Learning clone localized in English with continuously synthesized data.",
+      col1Copyright: "© 2026 Coinpaprika Clone EN. All rights reserved.",
+      col2Nav: "Navigation",
+      tabPrices: "Crypto Prices",
+      tabNews: "Crypto News",
+      tabAi: "AI Agents & Models",
+      tabWorkflows: "AI Workflows",
+      col3Title: "Disclaimer",
+      col3Desc: "Prices and news are provided for informational and educational purposes only. Nothing on this site constitutes investment advice.",
+      col4Title: "Technologies",
+      col5Title: "About",
+      col5Desc: "This clone reproduces the visual identity of Coinpaprika, with technical optimizations for seamless mobile and desktop display.",
+      netWarnTitle: "Network Alert",
+      netWarnDesc: "The official Coinpaprika server is temporarily slow or rate-limited. Realistic fallback data is currently being served to ensure uninterrupted service."
+    }
+  }[language];
+
   return (
     <div className="min-h-screen bg-bg-main text-text-primary flex flex-col justify-between font-sans selection:bg-brand-yellow selection:text-bg-main">
       <div>
@@ -355,10 +403,11 @@ export default function App() {
           currency={currency}
           onRefresh={handleRefresh}
           isRefreshing={isRefreshing}
+          language={language}
         />
 
         {/* AI Provider & Agent token pricing bar */}
-        <AiTokenCostsBar />
+        <AiTokenCostsBar language={language} />
 
         {/* Branding Navigation Header */}
         <Header
@@ -368,19 +417,32 @@ export default function App() {
           setCurrency={setCurrency}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
+          language={language}
+          setLanguage={setLanguage}
         />
 
         {/* Server connection error alerts */}
-        {error && (
+        {(error || isFallbackMode) && showWarningBanner && (
           <div className="max-w-7xl mx-auto px-6 mt-4">
-            <div className="bg-brand-yellow/10 border border-brand-yellow/20 rounded-xl p-4 flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-brand-yellow shrink-0 mt-0.5" />
-              <div>
-                <h4 className="text-xs font-bold text-brand-yellow uppercase tracking-wide">Avertissement réseau</h4>
-                <p className="text-xs text-text-secondary mt-1 leading-relaxed">
-                  Le serveur Coinpaprika officiel est temporairement ralenti ou le quota est restreint. Des données de secours réalistes sont actuellement servies pour assurer un service ininterrompu.
-                </p>
+            <div className="bg-brand-yellow/10 border border-brand-yellow/20 rounded-xl p-4 flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-brand-yellow shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-xs font-bold text-brand-yellow uppercase tracking-wide">
+                    {error ? (language === "en" ? "Connection Error" : "Erreur de connexion") : footerT.netWarnTitle}
+                  </h4>
+                  <p className="text-xs text-text-secondary mt-1 leading-relaxed">
+                    {error ? error : footerT.netWarnDesc}
+                  </p>
+                </div>
               </div>
+              <button
+                onClick={() => setShowWarningBanner(false)}
+                className="text-text-secondary hover:text-text-primary p-1 rounded-lg hover:bg-bg-stat transition-colors cursor-pointer"
+                title={language === "en" ? "Dismiss" : "Ignorer"}
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
           </div>
         )}
@@ -406,6 +468,7 @@ export default function App() {
                 existingAlerts={alerts}
                 onSelectCoin={(coin) => setSelectedCoin(coin)}
                 onSetAlert={(coin) => setSelectedCoinForAlert(coin)}
+                language={language}
               />
             )
           ) : activeTab === "ai_trends" ? (
@@ -424,7 +487,7 @@ export default function App() {
 
               {/* Confrontation of Trends vs News */}
               <div className="max-w-7xl mx-auto px-6">
-                <TrendNewsComparer type="ai" />
+                <TrendNewsComparer type="ai" language={language} />
               </div>
 
               {/* AI News Panel */}
@@ -433,12 +496,15 @@ export default function App() {
                 isLoading={isLoadingAiNews}
                 onRefresh={handleRefresh}
                 lastFetched={aiNewsLastFetched}
-                title="Fils d'Actualités - Agents & Modèles IA"
-                description="Dernières actualités sémantiques de l'écosystème de l'Intelligence Artificielle"
+                language={language}
+                title={language === "en" ? "AI Agents & Models News Feed" : "Fils d'Actualités - Agents & Modèles IA"}
+                description={language === "en" ? "Latest semantic developments across the Artificial Intelligence ecosystem" : "Dernières actualités sémantiques de l'écosystème de l'Intelligence Artificielle"}
               />
             </>
           ) : activeTab === "workflows" ? (
             <WorkflowLibrarySection searchQuery={searchQuery} />
+          ) : activeTab === "p2e" ? (
+            <PlayToEarnSection />
           ) : (
             <>
               {/* Crypto Radar Chart showing search intent dendrogram */}
@@ -455,7 +521,7 @@ export default function App() {
 
               {/* Confrontation of Trends vs News */}
               <div className="max-w-7xl mx-auto px-6">
-                <TrendNewsComparer type="crypto" />
+                <TrendNewsComparer type="crypto" language={language} />
               </div>
 
               {/* Crypto News Panel with AI translations */}
@@ -464,6 +530,7 @@ export default function App() {
                 isLoading={isLoadingNews}
                 onRefresh={handleRefresh}
                 lastFetched={newsLastFetched}
+                language={language}
               />
             </>
           )}
@@ -550,10 +617,10 @@ export default function App() {
               coin<span className="text-brand-yellow">paprika</span>
             </span>
             <p className="text-xs text-text-secondary leading-relaxed">
-              Une plateforme complète de suivi d'actifs numériques. Clone d'apprentissage localisé en français avec données synthétisées en continu.
+              {footerT.col1Desc}
             </p>
             <span className="text-[10px] text-text-secondary/60 font-mono mt-2 block">
-              © 2026 Coinpaprika Clone FR. Tous droits réservés.
+              {footerT.col1Copyright}
             </span>
           </div>
 
@@ -561,7 +628,7 @@ export default function App() {
           <div className="flex flex-col gap-3">
             <span className="text-xs font-extrabold uppercase text-text-primary tracking-widest font-mono flex items-center gap-1.5">
               <Sliders className="w-4 h-4 text-brand-yellow" />
-              Navigation
+              {footerT.col2Nav}
             </span>
             <ul className="text-xs text-text-secondary flex flex-col gap-2.5 font-mono">
               <li>
@@ -575,7 +642,7 @@ export default function App() {
                   }`}
                 >
                   <Coins className="w-3.5 h-3.5 shrink-0" />
-                  <span>Prix des Cryptos</span>
+                  <span>{footerT.tabPrices}</span>
                 </button>
               </li>
               <li>
@@ -589,7 +656,7 @@ export default function App() {
                   }`}
                 >
                   <Newspaper className="w-3.5 h-3.5 shrink-0" />
-                  <span>Actualités Crypto</span>
+                  <span>{footerT.tabNews}</span>
                 </button>
               </li>
               <li>
@@ -603,7 +670,7 @@ export default function App() {
                   }`}
                 >
                   <Cpu className="w-3.5 h-3.5 shrink-0" />
-                  <span>Agents & Modèles IA</span>
+                  <span>{footerT.tabAi}</span>
                 </button>
               </li>
               <li>
@@ -617,7 +684,7 @@ export default function App() {
                   }`}
                 >
                   <Workflow className="w-3.5 h-3.5 shrink-0" />
-                  <span>Workflows IA</span>
+                  <span>{footerT.tabWorkflows}</span>
                 </button>
               </li>
             </ul>
@@ -627,10 +694,10 @@ export default function App() {
           <div className="flex flex-col gap-3">
             <span className="text-xs font-extrabold uppercase text-text-primary tracking-widest font-mono flex items-center gap-1.5">
               <Shield className="w-4 h-4 text-text-secondary" />
-              Responsabilité
+              {footerT.col3Title}
             </span>
             <p className="text-[11px] text-text-secondary leading-relaxed">
-              Les prix et actualités sont fournis uniquement à titre indicatif et éducatif. Aucun élément présenté sur ce site ne constitue un conseil en investissement.
+              {footerT.col3Desc}
             </p>
           </div>
 
@@ -638,7 +705,7 @@ export default function App() {
           <div className="flex flex-col gap-3">
             <span className="text-xs font-extrabold uppercase text-text-primary tracking-widest font-mono flex items-center gap-1.5">
               <Award className="w-4 h-4 text-text-secondary" />
-              Technologies
+              {footerT.col4Title}
             </span>
             <ul className="text-xs text-text-secondary flex flex-col gap-1.5 font-mono">
               <li>• React 19 & Vite</li>
@@ -653,10 +720,10 @@ export default function App() {
           <div className="flex flex-col gap-3">
             <span className="text-xs font-extrabold uppercase text-text-primary tracking-widest font-mono flex items-center gap-1.5">
               <HelpCircle className="w-4 h-4 text-text-secondary" />
-              À propos
+              {footerT.col5Title}
             </span>
             <p className="text-[11px] text-text-secondary leading-relaxed">
-              Ce clone reproduit l'identité visuelle de la version française de Coinpaprika, avec des optimisations techniques pour la fluidité d'affichage mobile et de bureau.
+              {footerT.col5Desc}
             </p>
           </div>
 

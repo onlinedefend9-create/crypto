@@ -10,6 +10,7 @@ interface CryptoTableProps {
   existingAlerts: PriceAlert[];
   onSelectCoin: (coin: Coin) => void;
   onSetAlert: (coin: Coin) => void;
+  language?: "fr" | "en";
 }
 
 type SortField = "rank" | "price" | "change_24h" | "market_cap" | "volume_24h";
@@ -21,11 +22,48 @@ export default function CryptoTable({
   existingAlerts,
   onSelectCoin,
   onSetAlert,
+  language = "fr",
 }: CryptoTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [sortField, setSortField] = useState<SortField>("rank");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
+
+  // Localized texts
+  const t = {
+    fr: {
+      title: "Marché des Actifs Numériques",
+      desc: "Tri et filtres interactifs en direct. Cliquez sur une cryptomonnaie pour ouvrir ses graphiques avancés.",
+      showBy: "Afficher par:",
+      colPrice: "Prix",
+      colMarketCap: "Cap. de marché",
+      colVolume: "Volume 24h",
+      colTrend: "Tendance 24h",
+      colActions: "Actions",
+      p1: "Affichage de",
+      p2: "à",
+      p3: "sur",
+      p4: "cryptomonnaies",
+      viewDetails: "Voir les détails",
+      setAlert: "Définir une alerte de prix"
+    },
+    en: {
+      title: "Digital Asset Market",
+      desc: "Live interactive sorting and filtering. Click on a cryptocurrency to open its advanced charts.",
+      showBy: "Show by:",
+      colPrice: "Price",
+      colMarketCap: "Market Cap",
+      colVolume: "Volume 24h",
+      colTrend: "24h Trend",
+      colActions: "Actions",
+      p1: "Showing",
+      p2: "to",
+      p3: "of",
+      p4: "cryptocurrencies",
+      viewDetails: "View details",
+      setAlert: "Set price alert"
+    }
+  }[language];
 
   // Sorting logic
   const handleSort = (field: SortField) => {
@@ -126,16 +164,16 @@ export default function CryptoTable({
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h2 className="text-lg font-extrabold text-text-primary flex items-center gap-2">
-            <span>Marché des Actifs Numériques</span>
+            <span>{t.title}</span>
           </h2>
           <p className="text-xs text-text-secondary mt-0.5">
-            Tri et filtres interactifs en direct. Cliquez sur une cryptomonnaie pour ouvrir ses graphiques avancés.
+            {t.desc}
           </p>
         </div>
 
         {/* Items per page selector */}
         <div className="flex items-center gap-2 text-xs text-text-secondary self-end sm:self-auto">
-          <span>Afficher par:</span>
+          <span>{t.showBy}</span>
           <select
             value={itemsPerPage}
             onChange={(e) => {
@@ -171,7 +209,7 @@ export default function CryptoTable({
                 className="py-3 px-4 text-right cursor-pointer hover:text-text-primary transition-colors select-none"
               >
                 <div className="flex items-center gap-1 justify-end">
-                  <span>Prix</span>
+                  <span>{t.colPrice}</span>
                   <ArrowUpDown className="w-3 h-3" />
                 </div>
               </th>
@@ -191,7 +229,7 @@ export default function CryptoTable({
                 className="py-3 px-4 text-right cursor-pointer hover:text-text-primary transition-colors select-none"
               >
                 <div className="flex items-center gap-1 justify-end">
-                  <span>Cap. de marché</span>
+                  <span>{t.colMarketCap}</span>
                   <ArrowUpDown className="w-3 h-3" />
                 </div>
               </th>
@@ -200,12 +238,12 @@ export default function CryptoTable({
                 className="py-3 px-4 text-right cursor-pointer hover:text-text-primary transition-colors select-none"
               >
                 <div className="flex items-center gap-1 justify-end">
-                  <span>Volume 24h</span>
+                  <span>{t.colVolume}</span>
                   <ArrowUpDown className="w-3 h-3" />
                 </div>
               </th>
-              <th className="py-3 px-4 text-center">Tendance 24h</th>
-              <th className="py-3 px-4 text-center w-24">Actions</th>
+              <th className="py-3 px-4 text-center">{t.colTrend}</th>
+              <th className="py-3 px-4 text-center w-24">{t.colActions}</th>
             </tr>
           </thead>
           <tbody>
@@ -305,7 +343,7 @@ export default function CryptoTable({
                       <button
                         onClick={() => onSelectCoin(coin)}
                         className="p-1.5 rounded-lg bg-bg-main border border-border-dark text-text-secondary hover:text-brand-yellow hover:border-brand-yellow/30 transition-all cursor-pointer"
-                        title="Voir les détails"
+                        title={t.viewDetails}
                       >
                         <Eye className="w-3.5 h-3.5" />
                       </button>
@@ -316,7 +354,7 @@ export default function CryptoTable({
                             ? "bg-brand-yellow/15 border-brand-yellow text-brand-yellow shadow-sm shadow-brand-yellow/10 animate-pulse"
                             : "bg-bg-main border-border-dark text-text-secondary hover:text-brand-yellow hover:border-brand-yellow/30"
                         }`}
-                        title="Définir une alerte de prix"
+                        title={t.setAlert}
                       >
                         <Bell className="w-3.5 h-3.5" />
                       </button>
@@ -333,11 +371,11 @@ export default function CryptoTable({
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-6 pt-4 border-t border-border-dark">
           <span className="text-xs text-text-secondary">
-            Affichage de <span className="font-bold text-text-primary">{indexOfFirstItem + 1}</span> à{" "}
+            {t.p1} <span className="font-bold text-text-primary">{indexOfFirstItem + 1}</span> {t.p2}{" "}
             <span className="font-bold text-text-primary">
               {Math.min(indexOfLastItem, sortedCoins.length)}
             </span>{" "}
-            sur <span className="font-bold text-text-primary">{sortedCoins.length}</span> cryptomonnaies
+            {t.p3} <span className="font-bold text-text-primary">{sortedCoins.length}</span> {t.p4}
           </span>
 
           <div className="flex items-center gap-1 text-xs">

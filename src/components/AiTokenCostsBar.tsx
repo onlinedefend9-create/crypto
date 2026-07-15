@@ -21,8 +21,37 @@ interface CostItem {
   };
 }
 
-export default function AiTokenCostsBar() {
+export default function AiTokenCostsBar({ language = "fr" }: { language?: "fr" | "en" }) {
   const [hoveredItem, setHoveredItem] = useState<CostItem | null>(null);
+
+  const t = {
+    fr: {
+      platform: "PLATEFORME",
+      index: "INDICE",
+      crossed: "Croisé :",
+      llmProvider: "Fournisseur LLM",
+      indexStock: "Indice / Valeur Tech",
+      providerPlatform: "Prestataire / Plateforme",
+      impactRole: "Impact & Rôle Stratégique :",
+      crossedScenario: "Scénario Croisé Optimisé :",
+      architecture: "Architecture :",
+      estimatedCost: "Coût estimé :",
+      efficiency: "Rendement :"
+    },
+    en: {
+      platform: "PLATFORM",
+      index: "INDEX",
+      crossed: "Hybrid :",
+      llmProvider: "LLM Provider",
+      indexStock: "Index / Tech Stock",
+      providerPlatform: "Provider / Platform",
+      impactRole: "Strategic Role & Impact:",
+      crossedScenario: "Optimized Hybrid Scenario:",
+      architecture: "Architecture:",
+      estimatedCost: "Estimated Cost:",
+      efficiency: "Efficiency:"
+    }
+  }[language];
 
   const stockIndices: CostItem[] = [
     {
@@ -339,7 +368,7 @@ export default function AiTokenCostsBar() {
                 
                 {/* Provider badge for indexing */}
                 <span className="text-[9px] uppercase tracking-wider font-extrabold text-slate-500">
-                  {isIndex ? "INDICE" : "LLM"}
+                  {isIndex ? t.index : "LLM"}
                 </span>
 
                 <span className="font-extrabold text-slate-100 text-[11px] whitespace-nowrap">
@@ -387,7 +416,7 @@ export default function AiTokenCostsBar() {
               <Cpu className="w-3.5 h-3.5 text-brand-yellow shrink-0" />
               
               <span className="text-[9px] uppercase tracking-wider font-extrabold text-slate-500">
-                PLATEFORME
+                {t.platform}
               </span>
 
               <span className="font-extrabold text-slate-100 text-[11px] whitespace-nowrap">
@@ -404,7 +433,7 @@ export default function AiTokenCostsBar() {
 
               {item.crossedScenario && (
                 <div className="flex items-center gap-1.5 ml-1 bg-brand-yellow/5 border border-brand-yellow/15 px-2 py-0.5 rounded text-[9px] text-brand-yellow/90">
-                  <span className="font-semibold uppercase text-[8px] opacity-75">Croisé :</span>
+                  <span className="font-semibold uppercase text-[8px] opacity-75">{t.crossed}</span>
                   <span className="font-mono font-bold text-white">{item.crossedScenario.totalCost}</span>
                 </div>
               )}
@@ -433,7 +462,7 @@ export default function AiTokenCostsBar() {
                       ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                       : "bg-red-500/10 text-red-400 border border-red-500/20"
                 }`}>
-                  {hoveredItem.type === "llm" ? "Fournisseur LLM" : hoveredItem.type === "index" ? "Indice / Valeur Tech" : "Prestataire / Plateforme"}
+                  {hoveredItem.type === "llm" ? t.llmProvider : hoveredItem.type === "index" ? t.indexStock : t.providerPlatform}
                 </span>
                 <h4 className="text-xs font-black text-white mt-1 flex items-center gap-1.5">
                   {hoveredItem.name}
@@ -452,7 +481,7 @@ export default function AiTokenCostsBar() {
             <div className="mb-3 bg-slate-950/80 p-2.5 rounded-lg border border-slate-800">
               <span className="text-[9px] font-extrabold uppercase tracking-wider text-slate-100 flex items-center gap-1 mb-1.5">
                 <Cpu className="w-3 h-3 text-emerald-400" />
-                Impact & Rôle Stratégique :
+                {t.impactRole}
               </span>
               <ul className="space-y-1">
                 {hoveredItem.agenticStrengths.map((str, index) => (
@@ -469,19 +498,19 @@ export default function AiTokenCostsBar() {
               <div className="border-t border-dashed border-slate-800 pt-2.5">
                 <span className="text-[9px] font-extrabold uppercase tracking-widest text-brand-yellow flex items-center gap-1 mb-1.5">
                   <Database className="w-3 h-3" />
-                  Scénario Croisé Optimisé :
+                  {t.crossedScenario}
                 </span>
                 <div className="bg-brand-yellow/5 border border-brand-yellow/20 rounded p-2.5 text-[9px]">
                   <div className="flex justify-between text-white font-medium mb-0.5">
-                    <span>Architecture :</span>
+                    <span>{t.architecture}</span>
                     <span className="text-brand-yellow font-bold">{hoveredItem.crossedScenario.setup}</span>
                   </div>
                   <div className="flex justify-between text-slate-300">
-                    <span>Coût estimé :</span>
+                    <span>{t.estimatedCost}</span>
                     <span className="text-emerald-400 font-mono font-bold">{hoveredItem.crossedScenario.totalCost}</span>
                   </div>
                   <div className="flex justify-between text-slate-400 text-[8px] italic mt-0.5 opacity-80">
-                    <span>Rendement :</span>
+                    <span>{t.efficiency}</span>
                     <span>{hoveredItem.crossedScenario.efficiency}</span>
                   </div>
                 </div>

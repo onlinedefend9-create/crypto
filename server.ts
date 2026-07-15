@@ -149,8 +149,8 @@ let cachedGlobalStats: any = null;
 let globalStatsLastFetched = 0;
 const GLOBAL_STATS_CACHE_TTL = 5 * 60 * 1000; // 5 minutes in ms
 
-let cachedNews: any[] = [];
-let newsLastFetched = 0;
+let cachedNews: Record<string, any[]> = { fr: [], en: [] };
+let newsLastFetched: Record<string, number> = { fr: 0, en: 0 };
 const NEWS_CACHE_TTL = 10 * 60 * 1000; // 10 minutes in ms
 
 // Robust baseline crypto data in case the public API fails or is rate-limited
@@ -240,6 +240,69 @@ const BASELINE_NEWS = [
     link: "https://coinpaprika.com",
     pubDate: "il y a 12 heures",
     sentiment: "positif",
+    category: "Adoption"
+  }
+];
+
+const BASELINE_NEWS_EN = [
+  {
+    id: "news-1",
+    title: "Bitcoin nears new all-time high driven by institutional adoption",
+    summary: "The price of Bitcoin continues its upward trajectory, approaching $93,000. This momentum is largely fueled by continuous inflows into spot Bitcoin ETFs and growing interest from corporate treasuries.",
+    source: "Coinpaprika News",
+    link: "https://coinpaprika.com",
+    pubDate: "35 minutes ago",
+    sentiment: "positive",
+    category: "Bitcoin"
+  },
+  {
+    id: "news-2",
+    title: "Ethereum Pectra upgrade planned for end of year: what you need to know",
+    summary: "Ethereum developers confirmed major progress for the upcoming hard fork named Pectra. This update aims to optimize account abstraction and further reduce gas fees on layer-2 solutions.",
+    source: "Coinpaprika News",
+    link: "https://coinpaprika.com",
+    pubDate: "2 hours ago",
+    sentiment: "neutral",
+    category: "Altcoins"
+  },
+  {
+    id: "news-3",
+    title: "MiCA regulation in Europe: Stablecoin issuers adapt to new requirements",
+    summary: "The gradual entry into force of the MiCA (Markets in Crypto-Assets) regulation pushes stablecoin giants to review their compliance in Europe. Circle (USDC) is strengthening its presence while other issuers adjust their reserve structures.",
+    source: "Coinpaprika News",
+    link: "https://coinpaprika.com",
+    pubDate: "4 hours ago",
+    sentiment: "neutral",
+    category: "Regulation"
+  },
+  {
+    id: "news-4",
+    title: "Solana exceeds daily transaction volume records despite occasional congestion",
+    summary: "The Solana network is seeing record volumes on its decentralized exchanges, briefly surpassing other major chains. Validators are actively working on patches to stabilize throughput during user spikes.",
+    source: "Coinpaprika News",
+    link: "https://coinpaprika.com",
+    pubDate: "6 hours ago",
+    sentiment: "positive",
+    category: "DeFi"
+  },
+  {
+    id: "news-5",
+    title: "Security Alert: Major DeFi protocol loses $5M in flash loan exploit",
+    summary: "A complex hack utilizing flash loans drained nearly $5 million from a popular algorithmic lending protocol. Security teams froze contracts and are collaborating to recover stolen funds.",
+    source: "Coinpaprika News",
+    link: "https://coinpaprika.com",
+    pubDate: "8 hours ago",
+    sentiment: "negative",
+    category: "Security"
+  },
+  {
+    id: "news-6",
+    title: "Crypto micro-payments adoption accelerates in global e-commerce",
+    summary: "A new study reveals a 35% increase in online merchants integrating crypto payment gateways this year. Lower fees and instant settlement are appealing to more and more SMEs.",
+    source: "Coinpaprika News",
+    link: "https://coinpaprika.com",
+    pubDate: "12 hours ago",
+    sentiment: "positive",
     category: "Adoption"
   }
 ];
@@ -340,16 +403,26 @@ app.get("/api/global", async (req, res) => {
   }
 });
 
-function getDynamicBaselineNews(): any[] {
+function getDynamicBaselineNews(lang: string = "fr"): any[] {
   const offsets = [12, 45, 120, 240, 420, 660];
-  return BASELINE_NEWS.map((article, index) => {
+  const baseline = lang === "en" ? BASELINE_NEWS_EN : BASELINE_NEWS;
+  return baseline.map((article, index) => {
     const offsetMin = offsets[index % offsets.length];
     let pubDateText = "";
-    if (offsetMin < 60) {
-      pubDateText = `il y a ${offsetMin} minutes`;
+    if (lang === "en") {
+      if (offsetMin < 60) {
+        pubDateText = `${offsetMin} minutes ago`;
+      } else {
+        const hours = Math.floor(offsetMin / 60);
+        pubDateText = `${hours} hour${hours > 1 ? "s" : ""} ago`;
+      }
     } else {
-      const hours = Math.floor(offsetMin / 60);
-      pubDateText = `il y a ${hours} heure${hours > 1 ? "s" : ""}`;
+      if (offsetMin < 60) {
+        pubDateText = `il y a ${offsetMin} minutes`;
+      } else {
+        const hours = Math.floor(offsetMin / 60);
+        pubDateText = `il y a ${hours} heure${hours > 1 ? "s" : ""}`;
+      }
     }
     return {
       ...article,
@@ -359,18 +432,41 @@ function getDynamicBaselineNews(): any[] {
 }
 
 // Helper to automatically background fetch and update news
-async function autoUpdateNews() {
+async function autoUpdateNews(lang: "fr" | "en" = "fr") {
   if (!ai) {
-    console.log("[Auto-Update] Gemini API not available. Skipping automatic background news fetch.");
+    console.log(`[Auto-Update] Gemini API not available. Skipping automatic background news fetch for ${lang}.`);
     return;
   }
   const now = Date.now();
   try {
-    console.log("[Auto-Update] Starting automatic background RSS fetch...");
+    console.log(`[Auto-Update] Starting automatic background RSS fetch for ${lang}...`);
     const xmlText = await fetchRSSWithFallback();
-    console.log("[Auto-Update] Translating and summarizing background RSS feed with Gemini...");
+    console.log(`[Auto-Update] Translating and summarizing background RSS feed with Gemini for ${lang}...`);
     
-    const systemInstruction = `Tu es un rédacteur en chef expert pour Coinpaprika FR. Analyse le flux XML RSS fourni et extrait les 8 articles de presse crypto les plus récents et pertinents.
+    const systemInstruction = lang === "en"
+      ? `You are an expert chief editor for Coinpaprika EN. Analyze the provided XML RSS feed and extract the 8 most recent and relevant crypto news articles.
+For each article, perform the following actions:
+1. Ensure the title is written in fluent, professional, and catchy English.
+2. Write a brief summary of about 2-3 sentences in clear English explaining the significance of the event.
+3. Extract the source (e.g. "Cointelegraph"), the original link (link), and the publication date converted to relative English (e.g., "30 minutes ago", "2 hours ago", "today").
+4. Evaluate the sentiment of the article neutrally: "positive", "neutral", or "negative".
+5. Assign a category: "Bitcoin", "Altcoins", "Regulation", "DeFi", "Security", "Adoption", or "NFT".
+
+Return strictly a JSON array of objects following this exact schema:
+[
+  {
+    "id": "unique ID",
+    "title": "Title",
+    "summary": "News summary",
+    "source": "Original source",
+    "link": "Original link",
+    "pubDate": "X hours ago",
+    "sentiment": "positive" | "neutral" | "negative",
+    "category": "Bitcoin"
+  }
+]
+Return ONLY the raw JSON array, without any Markdown blocks.`
+      : `Tu es un rédacteur en chef expert pour Coinpaprika FR. Analyse le flux XML RSS fourni et extrait les 8 articles de presse crypto les plus récents et pertinents.
 Pour chaque article, effectue les actions suivantes :
 1. Traduis le titre de l'anglais vers un français fluide, professionnel et accrocheur.
 2. Rédige un résumé synthétique d'environ 2-3 phrases en français clair expliquant l'importance de l'événement.
@@ -406,36 +502,60 @@ Retourne UNIQUEMENT le tableau JSON brut, sans aucune balise Markdown.`;
     const newsData = JSON.parse(parsedText);
     
     if (Array.isArray(newsData) && newsData.length > 0) {
-      cachedNews = newsData;
-      newsLastFetched = now;
-      console.log(`[Auto-Update] Success! ${newsData.length} articles updated automatically.`);
+      cachedNews[lang] = newsData;
+      newsLastFetched[lang] = now;
+      console.log(`[Auto-Update] Success! ${newsData.length} articles updated automatically for ${lang}.`);
     }
   } catch (err: any) {
     const isQuota = err && err.message && typeof err.message === "string" && (err.message.includes("429") || err.message.includes("quota") || err.message.includes("RESOURCE_EXHAUSTED"));
     const reasonMsg = isQuota ? "rate limit (quota threshold)" : "service condition";
-    console.log(`[Auto-Update Notice] Background processing deferred due to: ${reasonMsg}`);
+    console.log(`[Auto-Update Notice] Background processing for ${lang} deferred due to: ${reasonMsg}`);
   }
 }
 
 // 3. API: GET /api/news
 app.get("/api/news", async (req, res) => {
   const now = Date.now();
+  const lang = (req.query.lang === "en" ? "en" : "fr") as "fr" | "en";
   
-  if (cachedNews && cachedNews.length > 0 && (now - newsLastFetched < NEWS_CACHE_TTL)) {
-    return res.json({ source: "cache", data: cachedNews, lastFetched: newsLastFetched });
+  if (cachedNews[lang] && cachedNews[lang].length > 0 && (now - newsLastFetched[lang] < NEWS_CACHE_TTL)) {
+    return res.json({ source: "cache", data: cachedNews[lang], lastFetched: newsLastFetched[lang] });
   }
   
   if (!ai) {
-    console.log("Gemini API not available. Serving baseline news with dynamic timestamps.");
-    return res.json({ source: "baseline", data: getDynamicBaselineNews(), lastFetched: now });
+    console.log(`Gemini API not available. Serving baseline news with dynamic timestamps for ${lang}.`);
+    return res.json({ source: "baseline", data: getDynamicBaselineNews(lang), lastFetched: now });
   }
   
   try {
-    console.log("Fetching RSS feed via resilient fallback loader...");
+    console.log(`Fetching RSS feed via resilient fallback loader for ${lang}...`);
     const xmlText = await fetchRSSWithFallback();
     
-    console.log("Processing RSS feed with Gemini AI...");
-    const systemInstruction = `Tu es un rédacteur en chef expert pour Coinpaprika FR. Analyse le flux XML RSS fourni et extrait les 8 articles de presse crypto les plus récents et pertinents.
+    console.log(`Processing RSS feed with Gemini AI in ${lang}...`);
+    const systemInstruction = lang === "en"
+      ? `You are an expert chief editor for Coinpaprika EN. Analyze the provided XML RSS feed and extract the 8 most recent and relevant crypto news articles.
+For each article, perform the following actions:
+1. Ensure the title is written in fluent, professional, and catchy English.
+2. Write a brief summary of about 2-3 sentences in clear English explaining the significance of the event.
+3. Extract the source (e.g. "Cointelegraph"), the original link (link), and the publication date converted to relative English (e.g., "30 minutes ago", "2 hours ago", "today").
+4. Evaluate the sentiment of the article neutrally: "positive", "neutral", or "negative".
+5. Assign a category: "Bitcoin", "Altcoins", "Regulation", "DeFi", "Security", "Adoption", or "NFT".
+
+Return strictly a JSON array of objects following this exact schema:
+[
+  {
+    "id": "unique ID",
+    "title": "Title",
+    "summary": "News summary",
+    "source": "Original source",
+    "link": "Original link",
+    "pubDate": "X hours ago",
+    "sentiment": "positive" | "neutral" | "negative",
+    "category": "Bitcoin"
+  }
+]
+Return ONLY the raw JSON array, without any Markdown blocks.`
+      : `Tu es un rédacteur en chef expert pour Coinpaprika FR. Analyse le flux XML RSS fourni et extrait les 8 articles de presse crypto les plus récents et pertinents.
 Pour chaque article, effectue les actions suivantes :
 1. Traduis le titre de l'anglais vers un français fluide, professionnel et accrocheur.
 2. Rédige un résumé synthétique d'environ 2-3 phrases en français clair expliquant l'importance de l'événement.
@@ -471,20 +591,133 @@ Retourne UNIQUEMENT le tableau JSON brut, sans aucune balise Markdown.`;
     const newsData = JSON.parse(parsedText);
     
     if (Array.isArray(newsData) && newsData.length > 0) {
-      cachedNews = newsData;
-      newsLastFetched = now;
-      return res.json({ source: "gemini-rss", data: newsData, lastFetched: newsLastFetched });
+      cachedNews[lang] = newsData;
+      newsLastFetched[lang] = now;
+      return res.json({ source: "gemini-rss", data: newsData, lastFetched: newsLastFetched[lang] });
     } else {
       throw new Error("Gemini response is not a valid list of news");
     }
   } catch (error: any) {
-    console.log(`[News Info] Serving fallback crypto news. (Status: Gemini/RSS pipeline returned news-serving fallback)`);
+    console.log(`[News Info] Serving fallback crypto news for ${lang}. (Status: Gemini/RSS pipeline returned news-serving fallback)`);
     
     // Serve either cached news from previous successful run or dynamic baseline news
-    const fallbackNews = cachedNews.length > 0 ? cachedNews : getDynamicBaselineNews();
-    return res.json({ source: "fallback", data: fallbackNews, lastFetched: newsLastFetched || now });
+    const fallbackNews = (cachedNews[lang] && cachedNews[lang].length > 0) ? cachedNews[lang] : getDynamicBaselineNews(lang);
+    return res.json({ source: "fallback", data: fallbackNews, lastFetched: newsLastFetched[lang] || now });
   }
 });
+
+// Robust fallback radar tree data in English
+const RADAR_FALLBACK_EN = {
+  name: "Crypto Radar",
+  children: [
+    {
+      name: "BTC",
+      children: [
+        {
+          name: "Why",
+          children: [
+            { name: "Selling pressure from historical miners" },
+            { name: "Spot ETF capital outflows" }
+          ]
+        },
+        {
+          name: "How",
+          children: [
+            { name: "Aggressive accumulation by whale wallets" }
+          ]
+        },
+        {
+          name: "How much",
+          children: [
+            { name: "Defense of the $64k key support level" }
+          ]
+        },
+        {
+          name: "If",
+          children: [
+            { name: "The Fed keeps interest rates high" }
+          ]
+        },
+        {
+          name: "Where",
+          children: [
+            { name: "Massive flows to cold storage" }
+          ]
+        }
+      ]
+    },
+    {
+      name: "ETH",
+      children: [
+        {
+          name: "Why",
+          children: [
+            { name: "Historical drop in gas fees" }
+          ]
+        },
+        {
+          name: "How",
+          children: [
+            { name: "Steady rise in institutional staking" }
+          ]
+        },
+        {
+          name: "How much",
+          children: [
+            { name: "Psychological target of $4,000 in sight" }
+          ]
+        },
+        {
+          name: "If",
+          children: [
+            { name: "Prague-Electra upgrade succeeds" }
+          ]
+        },
+        {
+          name: "Where",
+          children: [
+            { name: "Volume migrating to Layer-2s" }
+          ]
+        }
+      ]
+    },
+    {
+      name: "SOL",
+      children: [
+        {
+          name: "Why",
+          children: [
+            { name: "Explosive volume on memecoins" }
+          ]
+        },
+        {
+          name: "How",
+          children: [
+            { name: "Firedancer validator rollout" }
+          ]
+        },
+        {
+          name: "How much",
+          children: [
+            { name: "Major resistance identified at $200" }
+          ]
+        },
+        {
+          name: "If",
+          children: [
+            { name: "Network congestion is kept under control" }
+          ]
+        },
+        {
+          name: "Where",
+          children: [
+            { name: "Record volume on Jupiter aggregator" }
+          ]
+        }
+      ]
+    }
+  ]
+};
 
 // Robust fallback radar tree data
 const RADAR_FALLBACK = {
@@ -882,15 +1115,47 @@ CRITICAL: N'utilise JAMAIS de guillemets doubles non échappés à l'intérieur 
 
 // 5. API: GET /api/compare-trends-news
 app.get("/api/compare-trends-news", async (req, res) => {
+  const lang = (req.query.lang === "en" ? "en" : "fr") as "fr" | "en";
   // Extract BTC, ETH, SOL tickers from cached tickers or baseline
   const tickersSource = cachedTickers || BASELINE_CRYPTOS;
   const btcTicker = tickersSource.find((c: any) => c.symbol === "BTC");
   const ethTicker = tickersSource.find((c: any) => c.symbol === "ETH");
   const solTicker = tickersSource.find((c: any) => c.symbol === "SOL");
 
-  const newsSource = cachedNews.length > 0 ? cachedNews : getDynamicBaselineNews();
+  const newsSource = (cachedNews[lang] && cachedNews[lang].length > 0) ? cachedNews[lang] : getDynamicBaselineNews(lang);
 
-  const comparisonFallback = {
+  const comparisonFallback = lang === "en" ? {
+    summary: "Analysis of divergence/convergence between recent news and price action over the past 24 hours.",
+    alignmentScore: 82,
+    alignmentLabel: "Strong Correlation",
+    coins: [
+      {
+        symbol: "BTC",
+        price: btcTicker ? `$${btcTicker.quotes?.USD?.price?.toLocaleString()}` : "$92,450.00",
+        change24h: btcTicker ? `${btcTicker.quotes?.USD?.percent_change_24h > 0 ? "+" : ""}${btcTicker.quotes?.USD?.percent_change_24h}%` : "+2.45%",
+        sentiment: "bullish",
+        comparison: "The steady flow of capital into spot ETFs validates the upward price trend. Institutional adoption directly supports the technical structure of the market.",
+        catalyst: "Massive spot ETF inflows"
+      },
+      {
+        symbol: "ETH",
+        price: ethTicker ? `$${ethTicker.quotes?.USD?.price?.toLocaleString()}` : "$3,420.50",
+        change24h: ethTicker ? `${ethTicker.quotes?.USD?.percent_change_24h > 0 ? "+" : ""}${ethTicker.quotes?.USD?.percent_change_24h}%` : "-1.20%",
+        sentiment: "neutral",
+        comparison: "Although Pectra upgrade news is positive long-term, price is experiencing short-term consolidation due to lack of immediate momentum.",
+        catalyst: "Awaiting Pectra upgrade"
+      },
+      {
+        symbol: "SOL",
+        price: solTicker ? `$${solTicker.quotes?.USD?.price?.toLocaleString()}` : "$182.40",
+        change24h: solTicker ? `${solTicker.quotes?.USD?.percent_change_24h > 0 ? "+" : ""}${solTicker.quotes?.USD?.percent_change_24h}%` : "+5.80%",
+        sentiment: "bullish",
+        comparison: "Record transaction volumes on Solana DEXes confirm euphoria and support the strong price pump despite occasional congestion.",
+        catalyst: "Record volumes on DEXes"
+      }
+    ],
+    conclusion: "The market shows broad convergence: on-chain activity spikes (Solana DEX, Bitcoin ETF) directly fuel price appreciation."
+  } : {
     summary: "Analyse de la divergence/convergence entre l'actualité récente et l'évolution des prix sur les dernières 24 heures.",
     alignmentScore: 82,
     alignmentLabel: "Forte Corrélation",
@@ -942,7 +1207,9 @@ app.get("/api/compare-trends-news", async (req, res) => {
       sentiment: n.sentiment
     })));
 
-    const prompt = `Voici les dernières données du marché : ${marketString}\n\nEt voici les dernières actualités chaudes de l'écosystème : ${newsString}\n\nRéalise une analyse comparative de la convergence ou de la divergence entre les prix et les actualités pour BTC, ETH et SOL.`;
+    const prompt = lang === "en"
+      ? `Here is the latest market data: ${marketString}\n\nAnd here is the latest news: ${newsString}\n\nPerform a comparative analysis of the convergence or divergence between prices and news for BTC, ETH, and SOL.`
+      : `Voici les dernières données du marché : ${marketString}\n\nEt voici les dernières actualités chaudes de l'écosystème : ${newsString}\n\nRéalise une analyse comparative de la convergence ou de la divergence entre les prix et les actualités pour BTC, ETH et SOL.`;
 
     const systemInstruction = `Tu es un analyste financier quantitatif crypto de haut niveau. Ton rôle est de comparer l'actualité chaude (sentiment, événements clés) et la performance récente des prix du marché pour BTC, ETH et SOL.
     
@@ -968,11 +1235,37 @@ Renvoie UNIQUEMENT un objet JSON conforme à cette structure stricte (sans enrob
 
 CRITICAL: N'utilise JAMAIS de guillemets doubles non échappés à l'intérieur des chaînes de texte (comme comparison, summary ou conclusion). Si tu as besoin de citer quelque chose ou d'utiliser des guillemets, utilise des guillemets simples (') ou des guillemets français (« »). Le résultat doit être un JSON strictement valide et directement parsable.`;
 
+    const systemInstructionBilingual = lang === "en"
+      ? `You are a top-tier crypto quantitative financial analyst. Your role is to compare the hot news (sentiment, key events) and the recent market price performance for BTC, ETH, and SOL.
+    
+Analyze whether the price action is aligned with the news (e.g. price up and positive news = strong convergence/alignment; price down despite exceptionally positive news = divergence, etc.).
+
+Return ONLY a JSON object matching this strict structure (no markdown wrapping, no extra text):
+{
+  "summary": "Global summary of the analysis in 2-3 sentences in clear English...",
+  "alignmentScore": 85,
+  "alignmentLabel": "Short label (e.g., Strong Alignment, Partial Divergence...)",
+  "coins": [
+    {
+      "symbol": "BTC",
+      "price": "$92,450.00",
+      "change24h": "+2.45%",
+      "sentiment": "bullish" | "bearish" | "neutral",
+      "comparison": "Brief explanation of the correlation or divergence between price and news for this asset in clear English (max 2 sentences)...",
+      "catalyst": "Name of the main catalyst for the asset in 3-5 words"
+    }
+  ],
+  "conclusion": "Short verdict/conclusion in English about the short-term opportunity (1-2 sentences)..."
+}
+
+CRITICAL: NEVER use unescaped double quotes inside text strings. If you need quotes, use single quotes ('). The result must be strictly valid JSON.`
+      : systemInstruction;
+
     const response = await generateContentWithRetry(ai, {
       model: "gemini-3.5-flash",
       contents: prompt,
       config: {
-        systemInstruction,
+        systemInstruction: systemInstructionBilingual,
         responseMimeType: "application/json",
       },
     });
@@ -1058,6 +1351,369 @@ const BASELINE_AI_NEWS = [
     category: "Adoption"
   }
 ];
+
+const BASELINE_AI_NEWS_EN = [
+  {
+    id: "ai-news-1",
+    title: "DeepSeek-V3 shakes up Silicon Valley giants with compute costs cut tenfold",
+    summary: "The new open-source foundation model DeepSeek-V3 is creating a buzz. Thanks to an ultra-optimized Mixture-of-Experts architecture, it achieves performance comparable to leading commercial models for a fraction of their training cost.",
+    source: "AI Frontiers",
+    link: "https://github.com/deepseek-ai",
+    pubDate: "25 minutes ago",
+    sentiment: "positive",
+    category: "Models"
+  },
+  {
+    id: "ai-news-2",
+    title: "Gemini 2.5 Flash introduces new autonomous real-time agents",
+    summary: "Google unveiled a major update for Gemini, focused on multimodal agents capable of executing complex web tasks in the background. Inference speed has been improved by 40%, paving the way for highly responsive assistants.",
+    source: "Google DeepMind",
+    link: "https://ai.google.dev",
+    pubDate: "2 hours ago",
+    sentiment: "positive",
+    category: "Agents"
+  },
+  {
+    id: "ai-news-3",
+    title: "Claude 3.7 Sonnet establishes itself as the new standard of excellence for coding",
+    summary: "The latest software engineering benchmarks place Claude 3.7 Sonnet far ahead of competitors. Its ability to understand multi-file architectures and apply complex code refactorings makes it the preferred tool for developers.",
+    source: "Anthropic Research",
+    link: "https://anthropic.com",
+    pubDate: "4 hours ago",
+    sentiment: "positive",
+    category: "Coding"
+  },
+  {
+    id: "ai-news-4",
+    title: "Regulation: European Union publishes guidelines for AI Act implementation",
+    summary: "The European Commission clarified transparency and safety audit obligations for providers of general-purpose foundation models. Companies have 12 months to comply or face significant fines.",
+    source: "EU Tech Policy",
+    link: "https://europa.eu",
+    pubDate: "6 hours ago",
+    sentiment: "neutral",
+    category: "Regulation"
+  },
+  {
+    id: "ai-news-5",
+    title: "AI Security: Research team uncovers jailbreak vulnerability using steganography",
+    summary: "Researchers demonstrated that LLM safety filters can be bypassed by concealing malicious instructions in seemingly harmless images or code. Urgent patches are being deployed.",
+    source: "AI Security Lab",
+    link: "https://arxiv.org",
+    pubDate: "8 hours ago",
+    sentiment: "negative",
+    category: "Security"
+  },
+  {
+    id: "ai-news-6",
+    title: "AI agent adoption doubles in automated customer service sector",
+    summary: "A sector report shows over 45% of large enterprises have deployed LLM-based conversational agents for tier-1 support. Reduced wait times and increased response relevance are highly acclaimed.",
+    source: "TechEnterprise",
+    link: "https://techenterprise.com",
+    pubDate: "12 hours ago",
+    sentiment: "positive",
+    category: "Adoption"
+  }
+];
+
+const AI_RADAR_FALLBACK_EN = {
+  name: "AI Radar",
+  children: [
+    {
+      name: "Gemini",
+      children: [
+        {
+          name: "Agents",
+          children: [
+            { name: "Project Astra (Live Voice/Video)" },
+            { name: "Gemini Code Assist" },
+            { name: "Google Workspace Auto-Agent" },
+            { name: "Google Search Agent" }
+          ]
+        },
+        {
+          name: "Frameworks",
+          children: [
+            { name: "Vertex AI Agent Builder" },
+            { name: "Google GenAI SDK" },
+            { name: "LangChain Google GenAI" },
+            { name: "LlamaIndex Gemini Integrations" }
+          ]
+        },
+        {
+          name: "Usages",
+          children: [
+            { name: "Native real-time video analysis" },
+            { name: "Long-document processing (2M tokens)" },
+            { name: "Entire repository coding" },
+            { name: "Ultra-low latency voice interaction" }
+          ]
+        },
+        {
+          name: "Limits",
+          children: [
+            { name: "Live audio stream latency" },
+            { name: "Cost of maximum context window" },
+            { name: "Risks of semantic hallucinations" },
+            { name: "Tight dependency on GCP ecosystem" }
+          ]
+        },
+        {
+          name: "Future",
+          children: [
+            { name: "Native OS control integration" },
+            { name: "Decentralized multi-agent cooperation" },
+            { name: "Gemini R giant reasoning models" }
+          ]
+        }
+      ]
+    },
+    {
+      name: "Claude",
+      children: [
+        {
+          name: "Agents",
+          children: [
+            { name: "Claude Computer Use (GUI Controller)" },
+            { name: "Claude Engineer" },
+            { name: "Interactive Artifacts Sandbox" },
+            { name: "Devin AI Software Engineer (Anthropic)" }
+          ]
+        },
+        {
+          name: "Frameworks",
+          children: [
+            { name: "Anthropic SDK" },
+            { name: "Model Context Protocol (MCP)" },
+            { name: "CrewAI Anthropic Integrations" },
+            { name: "LangGraph Statecharts" }
+          ]
+        },
+        {
+          name: "Usages",
+          children: [
+            { name: "OS & Browser interface automation" },
+            { name: "Architecture code refactoring" },
+            { name: "Automated research synthesis" },
+            { name: "On-the-fly application generation" }
+          ]
+        },
+        {
+          name: "Limits",
+          children: [
+            { name: "No built-in web search by default" },
+            { name: "Slower inference on Claude 3.7 Sonnet" },
+            { name: "High API cost compared to competition" },
+            { name: "Strict cloud rate limits" }
+          ]
+        },
+        {
+          name: "Future",
+          children: [
+            { name: "Pixel-perfect ultra-fast mouse control" },
+            { name: "Advanced autonomous vision models" },
+            { name: "Drastic drop in inference pricing" }
+          ]
+        }
+      ]
+    },
+    {
+      name: "GPT-4",
+      children: [
+        {
+          name: "Agents",
+          children: [
+            { name: "OpenAI Operator (Browser Agent)" },
+            { name: "Custom GPT Store Assistant" },
+            { name: "Advanced Data Analyst" },
+            { name: "Microsoft Copilot Studio" }
+          ]
+        },
+        {
+          name: "Frameworks",
+          children: [
+            { name: "OpenAI Assistants API" },
+            { name: "AutoGen (Microsoft Multi-Agent)" },
+            { name: "CrewAI Ecosystem" },
+            { name: "Semantic Kernel" }
+          ]
+        },
+        {
+          name: "Usages",
+          children: [
+            { name: "PC task automation" },
+            { name: "Complex data analysis and visualization" },
+            { name: "Autonomous code generation" },
+            { name: "Advanced contextual customer support" }
+          ]
+        },
+        {
+          name: "Limits",
+          children: [
+            { name: "Logical reasoning hallucinations" },
+            { name: "High energy consumption of o1/o3" },
+            { name: "Proprietary lock-in in the API" },
+            { name: "Silent behavioral changes (Drift)" }
+          ]
+        },
+        {
+          name: "Future",
+          children: [
+            { name: "o3-mini models optimized for agentics" },
+            { name: "Autonomous browser control" },
+            { name: "Multimodal o1 voice interactions" }
+          ]
+        }
+      ]
+    },
+    {
+      name: "DeepSeek",
+      children: [
+        {
+          name: "Agents",
+          children: [
+            { name: "DeepSeek-R1 Reasoner Agent" },
+            { name: "DeepSeek Chat Assistant" },
+            { name: "R1 Autocomplete Code Generator" },
+            { name: "Cheap Enterprise Agents" }
+          ]
+        },
+        {
+          name: "Frameworks",
+          children: [
+            { name: "Ollama API Wrapper" },
+            { name: "Dify AI Workflow Builder" },
+            { name: "DeepSeek API WebUI" },
+            { name: "LiteLLM Router" }
+          ]
+        },
+        {
+          name: "Usages",
+          children: [
+            { name: "Logical and mathematical reasoning" },
+            { name: "Large-scale open-source code audit" },
+            { name: "Complex financial and scientific calculations" },
+            { name: "Ultra low-cost mass agent pipelines" }
+          ]
+        },
+        {
+          name: "Limits",
+          children: [
+            { name: "Temporary Cloud API instability" },
+            { name: "Strict regulatory filters and censorship" },
+            { name: "High latency of R1 reasoning mode" },
+            { name: "Fidelity loss on long contexts" }
+          ]
+        },
+        {
+          name: "Future",
+          children: [
+            { name: "MoE architecture optimization" },
+            { name: "Native autonomous Multimodal R1" },
+            { name: "Local distillations of 8B/70B models" }
+          ]
+        }
+      ]
+    },
+    {
+      name: "Llama",
+      children: [
+        {
+          name: "Agents",
+          children: [
+            { name: "Llama Guard (Safety/Moderation)" },
+            { name: "Multi-platform Meta AI Chatbot" },
+            { name: "Local Offline Sovereign Agents" },
+            { name: "Hugging Face Assistants" }
+          ]
+        },
+        {
+          name: "Frameworks",
+          children: [
+            { name: "Ollama Local Server" },
+            { name: "vLLM High-Performance Production Engine" },
+            { name: "Llama.cpp Edge Inference" },
+            { name: "LangChain Local Ollama Integration" }
+          ]
+        },
+        {
+          name: "Usages",
+          children: [
+            { name: "100% On-Premise data sovereignty" },
+            { name: "Local agents running on PC/Mac" },
+            { name: "AI safety filtering and guardrails" },
+            { name: "Confidential analysis of private data" }
+          ]
+        },
+        {
+          name: "Limits",
+          children: [
+            { name: "Significant local GPU hardware requirements" },
+            { name: "Reduced coding performance of small models" },
+            { name: "Limited context size in local hosting" },
+            { name: "Deployment and orchestration complexity" }
+          ]
+        },
+        {
+          name: "Future",
+          children: [
+            { name: "Ultra-fast Edge inference on smartphones" },
+            { name: "Native Llama 4 Ultra-Agentic" },
+            { name: "Dedicated local AI co-processors" }
+          ]
+        }
+      ]
+    },
+    {
+      name: "Qwen",
+      children: [
+        {
+          name: "Agents",
+          children: [
+            { name: "Alibaba Intelligent Shopping Assistant" },
+            { name: "Qwen Agentic Sandbox" },
+            { name: "Qwen-Coder Autonome" },
+            { name: "Multilingual Support Agent" }
+          ]
+        },
+        {
+          name: "Frameworks",
+          children: [
+            { name: "ModelScope Ecosystem (Alibaba)" },
+            { name: "Qwen Agent Framework" },
+            { name: "Hugging Face Pipelines" },
+            { name: "Ollama Qwen-Coder Wrapper" }
+          ]
+        },
+        {
+          name: "Usages",
+          children: [
+            { name: "Global multilingual customer support" },
+            { name: "Technical code translation and porting" },
+            { name: "Automated e-commerce web search" },
+            { name: "Asia-Pacific market analysis" }
+          ]
+        },
+        {
+          name: "Limits",
+          children: [
+            { name: "Regional language biases" },
+            { name: "Limited Western community documentation" },
+            { name: "Variable API access outside Asia" },
+            { name: "Enterprise US integration complexity" }
+          ]
+        },
+        {
+          name: "Future",
+          children: [
+            { name: "Industrial robotic vision models" },
+            { name: "Qwen-R1 Reasoning-Agents" },
+            { name: "Open-source research alliance" }
+          ]
+        }
+      ]
+    }
+  ]
+};
 
 const AI_RADAR_FALLBACK = {
   name: "AI Radar",
@@ -1359,6 +2015,39 @@ const AI_RADAR_FALLBACK = {
   ]
 };
 
+const AI_COMPARISON_FALLBACK_EN = {
+  summary: "Analysis of the driving forces of the artificial intelligence ecosystem: the emergence of DeepSeek shakes up the pricing of US leaders while Anthropic and Google wage a war of advanced features (reasoning and agency).",
+  alignmentScore: 94,
+  alignmentLabel: "Strong Consistency",
+  coins: [
+    {
+      symbol: "DeepSeek",
+      price: "$0.14 / M tok",
+      change24h: "-90% cost",
+      sentiment: "bullish",
+      comparison: "The Chinese model redefines the market with aggressive pricing and an extremely efficient MoE architecture, forcing US giants to adapt.",
+      catalyst: "Disruptive price/performance ratio"
+    },
+    {
+      symbol: "Claude",
+      price: "$3.00 / M tok",
+      change24h: "+ Excellence",
+      sentiment: "bullish",
+      comparison: "Claude 3.7 Sonnet maintains its lead on complex coding and software architecture tasks, justifying a premium inference price.",
+      catalyst: "Programming leadership"
+    },
+    {
+      symbol: "Gemini",
+      price: "$0.075 / M tok",
+      change24h: "2M context",
+      sentiment: "bullish",
+      comparison: "With Gemini 2.5 Flash and its giant context window, Google targets the market for mass-processing agents and native video/audio streams.",
+      catalyst: "Ultra-fast multimodal agents"
+    }
+  ],
+  conclusion: "The global trend is shifting value: simple raw general intelligence is becoming a cheap commodity, while coding expertise and application autonomy capture all the attention."
+};
+
 const AI_COMPARISON_FALLBACK = {
   summary: "Analyse des forces motrices de l'écosystème d'intelligence artificielle : l'émergence de DeepSeek bouscule la tarification des leaders américains tandis qu'Anthropic et Google se livrent une guerre de fonctionnalités avancées (raisonnement et agentivité).",
   alignmentScore: 94,
@@ -1393,16 +2082,30 @@ const AI_COMPARISON_FALLBACK = {
 };
 
 app.get("/api/ai/news", async (req, res) => {
-  return res.json({ source: "static", data: BASELINE_AI_NEWS, lastFetched: Date.now() });
+  const lang = req.query.lang === "en" ? "en" : "fr";
+  const data = lang === "en" ? BASELINE_AI_NEWS_EN : BASELINE_AI_NEWS;
+  return res.json({ source: "static", data, lastFetched: Date.now() });
 });
 
 app.post("/api/summarize", async (req, res) => {
   const { text } = req.body;
+  const lang = (req.body.lang === "en" || req.query.lang === "en") ? "en" : "fr";
   if (!text || typeof text !== "string") {
-    return res.status(400).json({ error: "Texte manquant ou invalide" });
+    return res.status(400).json({ error: lang === "en" ? "Missing or invalid text" : "Texte manquant ou invalide" });
   }
 
-  const baselineSummary = {
+  const baselineSummary = lang === "en" ? {
+    title: "Automatic Tactical Synthesis",
+    sentiment: "neutral",
+    threatLevel: "low",
+    summary: "The analysis highlights strong points of convergence in the crypto-semantic market. The bullish momentum is globally supported by steady investments and intense AI agent activity.",
+    bullets: [
+      "Stable capital inflows within the ecosystem",
+      "Consolidation of positions at key support levels",
+      "Overall favorable sentiment indicators"
+    ],
+    readingTime: "1 min read"
+  } : {
     title: "Synthèse Tactique Automatique",
     sentiment: "neutre",
     threatLevel: "faible",
@@ -1439,11 +2142,32 @@ Retourne UNIQUEMENT un objet JSON conforme à cette structure stricte (pas d'enr
   "readingTime": "X min de lecture"
 }`;
 
+    const systemInstructionBilingual = lang === "en"
+      ? `You are the ResumeFlow AI agent, a tactical assistant specialized in the analysis and synthesis of crypto data, news, and artificial intelligence.
+Analyze the provided text and generate an extremely clear, concise, and actionable synthesis in English.
+
+Return ONLY a JSON object matching this strict structure (no markdown wrapping, no introductory or concluding text):
+{
+  "title": "A short and punchy title in English (max 6 words)",
+  "sentiment": "bullish" | "bearish" | "neutral",
+  "threatLevel": "low" | "medium" | "high",
+  "summary": "A smooth single-paragraph summary explaining the key findings in English (max 3 sentences)",
+  "bullets": [
+    "Key point 1 of strategic importance (max 10 words)",
+    "Key point 2 of strategic importance (max 10 words)",
+    "Key point 3 of strategic importance (max 10 words)"
+  ],
+  "readingTime": "X min read"
+}`
+      : systemInstruction;
+
     const response = await generateContentWithRetry(ai, {
       model: "gemini-3.5-flash",
-      contents: `Voici le texte à synthétiser :\n\n${text.substring(0, 5000)}`,
+      contents: lang === "en"
+        ? `Here is the text to summarize:\n\n${text.substring(0, 5000)}`
+        : `Voici le texte à synthétiser :\n\n${text.substring(0, 5000)}`,
       config: {
-        systemInstruction,
+        systemInstruction: systemInstructionBilingual,
         responseMimeType: "application/json"
       }
     });
@@ -1464,31 +2188,49 @@ Retourne UNIQUEMENT un objet JSON conforme à cette structure stricte (pas d'enr
 });
 
 app.get("/api/ai/radar", async (req, res) => {
+  const lang = req.query.lang === "en" ? "en" : "fr";
   const requestedCoinsParam = req.query.coins as string;
   const targetModels = requestedCoinsParam 
     ? requestedCoinsParam.split(",").map(c => c.trim()).filter(Boolean)
     : ["Gemini", "Claude", "GPT-4", "DeepSeek", "Llama", "Qwen"];
 
+  const baseSource = lang === "en" ? AI_RADAR_FALLBACK_EN : AI_RADAR_FALLBACK;
+
   const filteredChildren = targetModels.map(model => {
-    const match = AI_RADAR_FALLBACK.children.find(c => c.name.toLowerCase() === model.toLowerCase());
+    const match = baseSource.children.find(c => c.name.toLowerCase() === model.toLowerCase());
     if (match) return match;
-    return {
-      name: model,
-      children: [
-        { name: "Agents", children: [{ name: `Agents basés sur ${model}` }] },
-        { name: "Frameworks", children: [{ name: `Frameworks d'intégration de ${model}` }] },
-        { name: "Usages", children: [{ name: `Déploiements et cas d'usage` }] },
-        { name: "Limites", children: [{ name: `Contraintes techniques actuelles` }] },
-        { name: "Futur", children: [{ name: `Perspectives d'évolution de ${model}` }] }
-      ]
-    };
+    if (lang === "en") {
+      return {
+        name: model,
+        children: [
+          { name: "Agents", children: [{ name: `Agents based on ${model}` }] },
+          { name: "Frameworks", children: [{ name: `Integration frameworks for ${model}` }] },
+          { name: "Usages", children: [{ name: `Deployments and use cases` }] },
+          { name: "Limits", children: [{ name: `Current technical constraints` }] },
+          { name: "Future", children: [{ name: `Future roadmap for ${model}` }] }
+        ]
+      };
+    } else {
+      return {
+        name: model,
+        children: [
+          { name: "Agents", children: [{ name: `Agents basés sur ${model}` }] },
+          { name: "Frameworks", children: [{ name: `Frameworks d'intégration de ${model}` }] },
+          { name: "Usages", children: [{ name: `Déploiements et cas d'usage` }] },
+          { name: "Limites", children: [{ name: `Contraintes techniques actuelles` }] },
+          { name: "Futur", children: [{ name: `Perspectives d'évolution de ${model}` }] }
+        ]
+      };
+    }
   });
 
   return res.json({ name: "AI Radar", children: filteredChildren });
 });
 
 app.get("/api/ai/compare-trends-news", async (req, res) => {
-  return res.json(AI_COMPARISON_FALLBACK);
+  const lang = req.query.lang === "en" ? "en" : "fr";
+  const data = lang === "en" ? AI_COMPARISON_FALLBACK_EN : AI_COMPARISON_FALLBACK;
+  return res.json(data);
 });
 
 // Start server and begin background auto-updater jobs

@@ -10,6 +10,7 @@ interface NewsSectionProps {
   lastFetched?: number | null;
   title?: string;
   description?: string;
+  language?: "fr" | "en";
 }
 
 export default function NewsSection({
@@ -17,11 +18,50 @@ export default function NewsSection({
   isLoading,
   onRefresh,
   lastFetched,
-  title = "Actualités & Décryptage Crypto",
-  description = "Traductions en temps réel et résumés analytiques de l'actualité crypto internationale, propulsés par Gemini 3.5."
+  title,
+  description,
+  language = "fr",
 }: NewsSectionProps) {
   const [selectedSentiment, setSelectedSentiment] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+
+  const t = {
+    fr: {
+      defaultTitle: "Actualités & Décryptage Crypto",
+      defaultDesc: "Traductions en temps réel et résumés analytiques de l'actualité crypto internationale, propulsés par Gemini 3.5.",
+      all: "Tous",
+      bullish: "Haussier",
+      neutral: "Neutre",
+      bearish: "Baissier",
+      allCategories: "Toutes Catégories",
+      aiAnalysis: "Analyse Synthétique IA",
+      aiAnalysisDesc: "Chaque article bénéficie d'une traduction et d'un résumé structurel optimisé pour la lecture rapide. Les scores de sentiment sont calculés par l'IA afin de refléter la tendance perçue du marché en temps réel.",
+      noArticle: "Aucun article trouvé",
+      noArticleDesc: "Aucun article ne correspond aux critères de filtrage actuellement sélectionnés.",
+      source: "Source",
+      activeSync: "Synchronisation arrière-plan active :",
+      every10min: "(Toutes les 10 min)"
+    },
+    en: {
+      defaultTitle: "Crypto News & Analytics",
+      defaultDesc: "Real-time translations and analytical summaries of international crypto news, powered by Gemini 3.5.",
+      all: "All",
+      bullish: "Bullish",
+      neutral: "Neutral",
+      bearish: "Bearish",
+      allCategories: "All Categories",
+      aiAnalysis: "AI Analytical Summary",
+      aiAnalysisDesc: "Each article features a structural summary and translation optimized for speed-reading. Sentiment scores are computed by AI to reflect perceived market trends in real time.",
+      noArticle: "No articles found",
+      noArticleDesc: "No articles match the currently selected filtering criteria.",
+      source: "Source",
+      activeSync: "Active background sync:",
+      every10min: "(Every 10 min)"
+    }
+  }[language];
+
+  const displayTitle = title || t.defaultTitle;
+  const displayDescription = description || t.defaultDesc;
 
   const categories = ["all", ...Array.from(new Set(news.map((item) => item.category)))];
 
@@ -37,21 +77,21 @@ export default function NewsSection({
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-bold rounded bg-price-green/10 text-price-green border border-price-green/20 uppercase font-mono">
             <TrendingUp className="w-3 h-3" />
-            <span>Positif</span>
+            <span>{t.bullish}</span>
           </span>
         );
       case "négatif":
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-bold rounded bg-price-red/10 text-price-red border border-price-red/20 uppercase font-mono">
             <TrendingDown className="w-3 h-3" />
-            <span>Négatif</span>
+            <span>{t.bearish}</span>
           </span>
         );
       default:
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-bold rounded bg-bg-stat text-text-secondary border border-border-dark uppercase font-mono">
             <Minus className="w-3 h-3" />
-            <span>Neutre</span>
+            <span>{t.neutral}</span>
           </span>
         );
     }
@@ -110,7 +150,7 @@ export default function NewsSection({
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-extrabold text-text-primary flex items-center gap-2">
               <Newspaper className="w-5 h-5 text-brand-yellow" />
-              <span>{title}</span>
+              <span>{displayTitle}</span>
             </h2>
             <div className="flex items-center gap-1.5 bg-price-green/10 text-price-green text-[9px] font-bold px-2 py-0.5 rounded border border-price-green/20 font-mono">
               <span className="relative flex h-1.5 w-1.5">
@@ -121,13 +161,13 @@ export default function NewsSection({
             </div>
           </div>
           <p className="text-xs text-text-secondary mt-0.5">
-            {description}
+            {displayDescription}
           </p>
           {lastFetched && (
             <p className="text-[10px] text-text-secondary mt-1 font-mono flex items-center gap-1">
-              <span>Synchronisation arrière-plan active :</span>
+              <span>{t.activeSync}</span>
               <span className="text-brand-yellow font-bold">{new Date(lastFetched).toLocaleTimeString()}</span>
-              <span className="text-[9px] text-text-secondary/60">(Toutes les 10 min)</span>
+              <span className="text-[9px] text-text-secondary/60">{t.every10min}</span>
             </p>
           )}
         </div>
@@ -142,7 +182,7 @@ export default function NewsSection({
                 selectedSentiment === "all" ? "bg-bg-stat text-brand-yellow font-bold" : "text-text-secondary hover:text-text-primary"
               }`}
             >
-              Tous
+              {t.all}
             </button>
             <button
               onClick={() => setSelectedSentiment("positif")}
@@ -150,7 +190,7 @@ export default function NewsSection({
                 selectedSentiment === "positif" ? "bg-price-green/20 text-price-green font-bold" : "text-text-secondary hover:text-text-primary"
               }`}
             >
-              <span>Haussier</span>
+              <span>{t.bullish}</span>
               <span className="px-1 text-[10px] rounded bg-price-green/10">
                 {news.filter((n) => n.sentiment === "positif").length}
               </span>
@@ -161,7 +201,7 @@ export default function NewsSection({
                 selectedSentiment === "neutre" ? "bg-border-dark text-text-primary font-bold" : "text-text-secondary hover:text-text-primary"
               }`}
             >
-              <span>Neutre</span>
+              <span>{t.neutral}</span>
               <span className="px-1 text-[10px] rounded bg-bg-stat">
                 {news.filter((n) => n.sentiment === "neutre").length}
               </span>
@@ -172,7 +212,7 @@ export default function NewsSection({
                 selectedSentiment === "négatif" ? "bg-price-red/20 text-price-red font-bold" : "text-text-secondary hover:text-text-primary"
               }`}
             >
-              <span>Baissier</span>
+              <span>{t.bearish}</span>
               <span className="px-1 text-[10px] rounded bg-price-red/10">
                 {news.filter((n) => n.sentiment === "négatif").length}
               </span>
@@ -185,7 +225,7 @@ export default function NewsSection({
             onChange={(e) => setSelectedCategory(e.target.value)}
             className="bg-bg-main border border-border-dark text-text-primary text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-brand-yellow"
           >
-            <option value="all">Toutes Catégories</option>
+            <option value="all">{t.allCategories}</option>
             {categories.filter((cat) => cat !== "all").map((cat) => (
               <option key={cat} value={cat}>
                 {cat}
@@ -201,9 +241,9 @@ export default function NewsSection({
           <Sparkles className="w-4 h-4 animate-pulse" />
         </div>
         <div>
-          <span className="text-[11px] font-bold text-text-primary tracking-wider uppercase font-mono block">Analyse Synthétique IA</span>
+          <span className="text-[11px] font-bold text-text-primary tracking-wider uppercase font-mono block">{t.aiAnalysis}</span>
           <p className="text-xs text-text-secondary leading-relaxed mt-0.5">
-            Chaque article bénéficie d'une traduction et d'un résumé structurel optimisé pour la lecture rapide. Les scores de sentiment sont calculés par l'IA afin de refléter la tendance perçue du marché en temps réel.
+            {t.aiAnalysisDesc}
           </p>
         </div>
       </div>
@@ -212,9 +252,9 @@ export default function NewsSection({
       {filteredNews.length === 0 ? (
         <div className="bg-bg-main border border-border-dark border-dashed rounded-xl p-12 text-center">
           <Info className="w-8 h-8 text-text-secondary mx-auto mb-3" />
-          <h3 className="text-sm font-bold text-text-primary">Aucun article trouvé</h3>
+          <h3 className="text-sm font-bold text-text-primary">{t.noArticle}</h3>
           <p className="text-xs text-text-secondary mt-1">
-            Aucun article ne correspond aux critères de filtrage actuellement sélectionnés.
+            {t.noArticleDesc}
           </p>
         </div>
       ) : (
@@ -261,7 +301,7 @@ export default function NewsSection({
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-yellow hover:text-brand-yellow/80 transition-colors"
                 >
-                  <span>Source ({article.source})</span>
+                  <span>{t.source} ({article.source})</span>
                   <ArrowUpRight className="w-3 h-3" />
                 </a>
               </div>
