@@ -125,20 +125,7 @@ export default function App() {
             }
           }
         } catch (publicErr) {
-          console.warn("Direct Coinlore API failed, trying Coinpaprika API...", publicErr);
-          try {
-            const res = await fetch("https://api.coinpaprika.com/v1/tickers?limit=150");
-            if (res.ok) {
-              const data = await res.json();
-              if (data && Array.isArray(data) && data.length > 0) {
-                setCoins(data);
-                setIsFallbackMode(true);
-                dataLoaded = true;
-              }
-            }
-          } catch (pErr) {
-            console.warn("Direct Coinpaprika API failed", pErr);
-          }
+          console.warn("Direct Coinlore API failed", publicErr);
         }
       }
 
@@ -180,7 +167,7 @@ export default function App() {
         console.warn("Backend API `/api/global` failed", err);
       }
 
-      // 2. Try public Coinlore API first, then Coinpaprika
+      // 2. Try public Coinlore API
       if (!dataLoaded) {
         try {
           const res = await fetch("https://api.coinlore.net/api/global/");
@@ -201,27 +188,7 @@ export default function App() {
             }
           }
         } catch (err) {
-          console.warn("Direct Coinlore Global API failed, trying Coinpaprika...", err);
-          try {
-            const res = await fetch("https://api.coinpaprika.com/v1/global");
-            if (res.ok) {
-              const data = await res.json();
-              if (data) {
-                const formattedStats = {
-                  market_cap_usd: data.market_cap_usd,
-                  volume_24h_usd: data.volume_24h_usd,
-                  bitcoin_dominance_percentage: data.bitcoin_dominance_percentage,
-                  cryptocurrencies_number: data.cryptocurrencies_number,
-                  market_cap_change_24h: data.market_cap_change_24h,
-                  volume_24h_change_24h: data.volume_24h_change_24h
-                };
-                setGlobalStats(formattedStats);
-                dataLoaded = true;
-              }
-            }
-          } catch (err2) {
-            console.warn("Direct Coinpaprika Global API failed too", err2);
-          }
+          console.warn("Direct Coinlore Global API failed", err);
         }
       }
 
@@ -551,7 +518,7 @@ export default function App() {
   const footerT = {
     fr: {
       col1Desc: "Une plateforme complète de suivi d'actifs numériques. Clone d'apprentissage localisé en français avec données synthétisées en continu.",
-      col1Copyright: "© 2026 Coinpaprika Clone FR. Tous droits réservés.",
+      col1Copyright: "© 2026 Coinlore Clone FR. Tous droits réservés.",
       col2Nav: "Navigation",
       tabPrices: "Prix des Cryptos",
       tabNews: "Actualités Crypto",
@@ -561,13 +528,13 @@ export default function App() {
       col3Desc: "Les prix et actualités sont fournis uniquement à titre indicatif et éducatif. Aucun élément présenté sur ce site ne constitue un conseil en investissement.",
       col4Title: "Technologies",
       col5Title: "À propos",
-      col5Desc: "Ce clone reproduit l'identité visuelle de la version française de Coinpaprika, avec des optimisations techniques pour la fluidité d'affichage mobile et de bureau.",
+      col5Desc: "Ce clone reproduit l'identité visuelle de la version française de Coinlore, avec des optimisations techniques pour la fluidité d'affichage mobile et de bureau.",
       netWarnTitle: "Avertissement réseau",
-      netWarnDesc: "Le serveur Coinpaprika officiel est temporairement ralenti ou le quota est restreint. Des données de secours réalistes sont actuellement servies pour assurer un service ininterrompu."
+      netWarnDesc: "Le serveur Coinlore officiel est temporairement ralenti ou le quota est restreint. Des données de secours réalistes sont actuellement servies pour assurer un service ininterrompu."
     },
     en: {
       col1Desc: "A complete platform for tracking digital assets. Learning clone localized in English with continuously synthesized data.",
-      col1Copyright: "© 2026 Coinpaprika Clone EN. All rights reserved.",
+      col1Copyright: "© 2026 Coinlore Clone EN. All rights reserved.",
       col2Nav: "Navigation",
       tabPrices: "Crypto Prices",
       tabNews: "Crypto News",
@@ -577,9 +544,9 @@ export default function App() {
       col3Desc: "Prices and news are provided for informational and educational purposes only. Nothing on this site constitutes investment advice.",
       col4Title: "Technologies",
       col5Title: "About",
-      col5Desc: "This clone reproduces the visual identity of Coinpaprika, with technical optimizations for seamless mobile and desktop display.",
+      col5Desc: "This clone reproduces the visual identity of Coinlore, with technical optimizations for seamless mobile and desktop display.",
       netWarnTitle: "Network Alert",
-      netWarnDesc: "The official Coinpaprika server is temporarily slow or rate-limited. Realistic fallback data is currently being served to ensure uninterrupted service."
+      netWarnDesc: "The official Coinlore server is temporarily slow or rate-limited. Realistic fallback data is currently being served to ensure uninterrupted service."
     }
   }[language];
 
@@ -796,14 +763,14 @@ export default function App() {
         </AnimatePresence>
       </div>
 
-      {/* Coinpaprika-styled Footing */}
+      {/* Coinlore-styled Footing */}
       <footer className="bg-bg-card border-t border-border-dark py-12 px-6 mt-12 font-sans">
         <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-8">
           
           {/* Column 1: Logotype */}
           <div className="flex flex-col gap-3">
             <span className="font-extrabold text-lg text-text-primary tracking-tight">
-              coin<span className="text-brand-yellow">paprika</span>
+              coin<span className="text-brand-yellow">lore</span>
             </span>
             <p className="text-xs text-text-secondary leading-relaxed">
               {footerT.col1Desc}

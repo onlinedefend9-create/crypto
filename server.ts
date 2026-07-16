@@ -186,8 +186,8 @@ const BASELINE_NEWS = [
     id: "news-1",
     title: "Le Bitcoin frôle un nouveau sommet historique porté par l'adoption institutionnelle",
     summary: "Le prix du Bitcoin continue sa trajectoire haussière en s'approchant des 93 000 dollars. Cette dynamique est largement alimentée par des flux continus vers les ETF Bitcoin au comptant et l'intérêt grandissant des trésoreries d'entreprises.",
-    source: "Coinpaprika News",
-    link: "https://coinpaprika.com",
+    source: "Coinlore News",
+    link: "https://www.coinlore.com",
     pubDate: "il y a 35 minutes",
     sentiment: "positif",
     category: "Bitcoin"
@@ -196,8 +196,8 @@ const BASELINE_NEWS = [
     id: "news-2",
     title: "La mise à jour d'Ethereum Pectra planifiée pour la fin d'année : ce qu'il faut savoir",
     summary: "Les développeurs d'Ethereum ont confirmé les avancées majeures pour le prochain hard fork nommé Pectra. Cette mise à jour vise à optimiser l'abstraction de compte et à réduire davantage les frais de gaz sur les solutions de seconde couche (Layer 2).",
-    source: "Coinpaprika News",
-    link: "https://coinpaprika.com",
+    source: "Coinlore News",
+    link: "https://www.coinlore.com",
     pubDate: "il y a 2 heures",
     sentiment: "neutre",
     category: "Altcoins"
@@ -206,8 +206,8 @@ const BASELINE_NEWS = [
     id: "news-3",
     title: "Régulation MiCA en Europe : Les émetteurs de stablecoins s'adaptent aux nouvelles exigences",
     summary: "L'entrée en vigueur progressive du règlement MiCA (Markets in Crypto-Assets) pousse les géants du stablecoin à revoir leur conformité en Europe. Cercle (USDC) renforce sa présence tandis que d'autres émetteurs modifient leurs structures de réserves.",
-    source: "Coinpaprika News",
-    link: "https://coinpaprika.com",
+    source: "Coinlore News",
+    link: "https://www.coinlore.com",
     pubDate: "il y a 4 heures",
     sentiment: "neutre",
     category: "Régulation"
@@ -216,8 +216,8 @@ const BASELINE_NEWS = [
     id: "news-4",
     title: "Solana dépasse le cap des volumes de transactions quotidiens face aux congestions",
     summary: "Le réseau Solana enregistre des volumes record sur ses plateformes d'échange décentralisées, surpassant brièvement d'autres réseaux majeurs. Les validateurs travaillent activement sur l'implémentation de correctifs pour stabiliser le débit face à l'afflux d'utilisateurs.",
-    source: "Coinpaprika News",
-    link: "https://coinpaprika.com",
+    source: "Coinlore News",
+    link: "https://www.coinlore.com",
     pubDate: "il y a 6 heures",
     sentiment: "positif",
     category: "DeFi"
@@ -226,8 +226,8 @@ const BASELINE_NEWS = [
     id: "news-5",
     title: "Alerte Sécurité : Un protocole DeFi majeur victime d'une attaque de prêt flash de 5M$",
     summary: "Un piratage complexe utilisant des prêts flash (flash loans) a drainé près de 5 millions de dollars d'un protocole de prêt algorithmique populaire. Les équipes de sécurité ont figé les contrats et collaborent pour récupérer les fonds dérobés.",
-    source: "Coinpaprika News",
-    link: "https://coinpaprika.com",
+    source: "Coinlore News",
+    link: "https://www.coinlore.com",
     pubDate: "il y a 8 heures",
     sentiment: "négatif",
     category: "Sécurité"
@@ -236,8 +236,8 @@ const BASELINE_NEWS = [
     id: "news-6",
     title: "L'adoption des micro-paiements crypto s'accélère dans le e-commerce mondial",
     summary: "Une nouvelle étude révèle une hausse de 35% de l'intégration des passerelles de paiement crypto par les commerçants en ligne cette année. Les frais réduits et la rapidité de règlement séduisent de plus en plus de PME.",
-    source: "Coinpaprika News",
-    link: "https://coinpaprika.com",
+    source: "Coinlore News",
+    link: "https://www.coinlore.com",
     pubDate: "il y a 12 heures",
     sentiment: "positif",
     category: "Adoption"
@@ -249,8 +249,8 @@ const BASELINE_NEWS_EN = [
     id: "news-1",
     title: "Bitcoin nears new all-time high driven by institutional adoption",
     summary: "The price of Bitcoin continues its upward trajectory, approaching $93,000. This momentum is largely fueled by continuous inflows into spot Bitcoin ETFs and growing interest from corporate treasuries.",
-    source: "Coinpaprika News",
-    link: "https://coinpaprika.com",
+    source: "Coinlore News",
+    link: "https://www.coinlore.com",
     pubDate: "35 minutes ago",
     sentiment: "positive",
     category: "Bitcoin"
@@ -259,8 +259,8 @@ const BASELINE_NEWS_EN = [
     id: "news-2",
     title: "Ethereum Pectra upgrade planned for end of year: what you need to know",
     summary: "Ethereum developers confirmed major progress for the upcoming hard fork named Pectra. This update aims to optimize account abstraction and further reduce gas fees on layer-2 solutions.",
-    source: "Coinpaprika News",
-    link: "https://coinpaprika.com",
+    source: "Coinlore News",
+    link: "https://www.coinlore.com",
     pubDate: "2 hours ago",
     sentiment: "neutral",
     category: "Altcoins"
@@ -269,8 +269,8 @@ const BASELINE_NEWS_EN = [
     id: "news-3",
     title: "MiCA regulation in Europe: Stablecoin issuers adapt to new requirements",
     summary: "The gradual entry into force of the MiCA (Markets in Crypto-Assets) regulation pushes stablecoin giants to review their compliance in Europe. Circle (USDC) is strengthening its presence while other issuers adjust their reserve structures.",
-    source: "Coinpaprika News",
-    link: "https://coinpaprika.com",
+    source: "Coinlore News",
+    link: "https://www.coinlore.com",
     pubDate: "4 hours ago",
     sentiment: "neutral",
     category: "Regulation"
@@ -279,8 +279,8 @@ const BASELINE_NEWS_EN = [
     id: "news-4",
     title: "Solana exceeds daily transaction volume records despite occasional congestion",
     summary: "The Solana network is seeing record volumes on its decentralized exchanges, briefly surpassing other major chains. Validators are actively working on patches to stabilize throughput during user spikes.",
-    source: "Coinpaprika News",
-    link: "https://coinpaprika.com",
+    source: "Coinlore News",
+    link: "https://www.coinlore.com",
     pubDate: "6 hours ago",
     sentiment: "positive",
     category: "DeFi"
@@ -289,8 +289,8 @@ const BASELINE_NEWS_EN = [
     id: "news-5",
     title: "Security Alert: Major DeFi protocol loses $5M in flash loan exploit",
     summary: "A complex hack utilizing flash loans drained nearly $5 million from a popular algorithmic lending protocol. Security teams froze contracts and are collaborating to recover stolen funds.",
-    source: "Coinpaprika News",
-    link: "https://coinpaprika.com",
+    source: "Coinlore News",
+    link: "https://www.coinlore.com",
     pubDate: "8 hours ago",
     sentiment: "negative",
     category: "Security"
@@ -299,8 +299,8 @@ const BASELINE_NEWS_EN = [
     id: "news-6",
     title: "Crypto micro-payments adoption accelerates in global e-commerce",
     summary: "A new study reveals a 35% increase in online merchants integrating crypto payment gateways this year. Lower fees and instant settlement are appealing to more and more SMEs.",
-    source: "Coinpaprika News",
-    link: "https://coinpaprika.com",
+    source: "Coinlore News",
+    link: "https://www.coinlore.com",
     pubDate: "12 hours ago",
     sentiment: "positive",
     category: "Adoption"
@@ -330,7 +330,7 @@ function applyFluctuations(tickers: any[]) {
   });
 }
 
-function mapCoinloreToCoinpaprika(coinloreCoin: any) {
+function mapCoinloreToStandard(coinloreCoin: any) {
   const symbol = (coinloreCoin.symbol || "").toUpperCase();
   const name = coinloreCoin.name || "";
   const cleanName = name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
@@ -354,7 +354,7 @@ function mapCoinloreToCoinpaprika(coinloreCoin: any) {
   };
 }
 
-function mapCoinloreGlobalToCoinpaprika(coinloreGlobal: any) {
+function mapCoinloreGlobalToStandard(coinloreGlobal: any) {
   const stats = Array.isArray(coinloreGlobal) ? coinloreGlobal[0] : coinloreGlobal;
   if (!stats) return null;
   return {
@@ -379,16 +379,16 @@ app.get("/api/tickers", async (req, res) => {
     });
   }
   
-  // Try Coinlore API (primary)
+  // Try Coinlore API
   try {
-    console.log("Fetching fresh tickers from Coinlore API (Primary)...");
+    console.log("Fetching fresh tickers from Coinlore API...");
     const response = await fetch("https://api.coinlore.net/api/tickers/?start=0&limit=100");
     if (!response.ok) {
       throw new Error(`Coinlore API returned status ${response.status}`);
     }
     const result = await response.json();
     if (result && Array.isArray(result.data) && result.data.length > 0) {
-      const mapped = result.data.map(mapCoinloreToCoinpaprika);
+      const mapped = result.data.map(mapCoinloreToStandard);
       cachedTickers = mapped;
       tickersLastFetched = now;
       return res.json({ source: "api", data: mapped });
@@ -396,32 +396,13 @@ app.get("/api/tickers", async (req, res) => {
       throw new Error("Invalid or empty data from Coinlore API");
     }
   } catch (coinloreError: any) {
-    console.warn("Coinlore API failed, trying Coinpaprika API...", coinloreError.message);
-    
-    // Try Coinpaprika API (secondary)
-    try {
-      console.log("Fetching fresh tickers from Coinpaprika API...");
-      const response = await fetch("https://api.coinpaprika.com/v1/tickers?limit=150");
-      if (!response.ok) {
-        throw new Error(`Coinpaprika API returned status ${response.status}`);
-      }
-      const data = await response.json();
-      if (data && Array.isArray(data) && data.length > 0) {
-        cachedTickers = data;
-        tickersLastFetched = now;
-        return res.json({ source: "api", data });
-      } else {
-        throw new Error("Invalid or empty data from Coinpaprika API");
-      }
-    } catch (error: any) {
-      console.log(`[Market Info] Serving tickers fallback baseline (API is busy or offline)`);
-      // If we have any cache, use it as fallback. If not, use baseline cryptos
-      const fallbackData = cachedTickers || BASELINE_CRYPTOS;
-      return res.json({
-        source: "fallback",
-        data: applyFluctuations(fallbackData)
-      });
-    }
+    console.warn("Coinlore API failed, serving tickers fallback baseline (API is offline)", coinloreError.message);
+    // If we have any cache, use it as fallback. If not, use baseline cryptos
+    const fallbackData = cachedTickers || BASELINE_CRYPTOS;
+    return res.json({
+      source: "fallback",
+      data: applyFluctuations(fallbackData)
+    });
   }
 });
 
@@ -433,15 +414,15 @@ app.get("/api/global", async (req, res) => {
     return res.json({ source: "cache", data: cachedGlobalStats });
   }
   
-  // Try Coinlore API (primary)
+  // Try Coinlore API
   try {
-    console.log("Fetching global stats from Coinlore API (Primary)...");
+    console.log("Fetching global stats from Coinlore API...");
     const response = await fetch("https://api.coinlore.net/api/global/");
     if (!response.ok) {
       throw new Error(`Coinlore API returned status ${response.status}`);
     }
     const result = await response.json();
-    const mapped = mapCoinloreGlobalToCoinpaprika(result);
+    const mapped = mapCoinloreGlobalToStandard(result);
     if (mapped) {
       cachedGlobalStats = mapped;
       globalStatsLastFetched = now;
@@ -450,35 +431,9 @@ app.get("/api/global", async (req, res) => {
       throw new Error("Invalid data from Coinlore API");
     }
   } catch (coinloreError: any) {
-    console.warn("Coinlore Global API failed, trying Coinpaprika...", coinloreError.message);
-    
-    // Try Coinpaprika (secondary)
-    try {
-      console.log("Fetching global stats from Coinpaprika API...");
-      const response = await fetch("https://api.coinpaprika.com/v1/global");
-      if (!response.ok) {
-        throw new Error(`Coinpaprika API returned status ${response.status}`);
-      }
-      const data = await response.json();
-      if (data) {
-        cachedGlobalStats = {
-          market_cap_usd: data.market_cap_usd,
-          volume_24h_usd: data.volume_24h_usd,
-          bitcoin_dominance_percentage: data.bitcoin_dominance_percentage,
-          cryptocurrencies_number: data.cryptocurrencies_number,
-          market_cap_change_24h: data.market_cap_change_24h,
-          volume_24h_change_24h: data.volume_24h_change_24h
-        };
-        globalStatsLastFetched = now;
-        return res.json({ source: "api", data: cachedGlobalStats });
-      } else {
-        throw new Error("Invalid data from Coinpaprika API");
-      }
-    } catch (error: any) {
-      console.log(`[Market Info] Serving global stats fallback baseline (API is busy or offline)`);
-      const fallbackData = cachedGlobalStats || BASELINE_GLOBAL;
-      return res.json({ source: "fallback", data: fallbackData });
-    }
+    console.warn("Coinlore Global API failed, serving global stats fallback baseline (API is offline)", coinloreError.message);
+    const fallbackData = cachedGlobalStats || BASELINE_GLOBAL;
+    return res.json({ source: "fallback", data: fallbackData });
   }
 });
 
@@ -523,7 +478,7 @@ async function autoUpdateNews(lang: "fr" | "en" = "fr") {
     console.log(`[Auto-Update] Translating and summarizing background RSS feed with Gemini for ${lang}...`);
     
     const systemInstruction = lang === "en"
-      ? `You are an expert chief editor for Coinpaprika EN. Analyze the provided XML RSS feed and extract the 8 most recent and relevant crypto news articles.
+      ? `You are an expert chief editor for Coinlore EN. Analyze the provided XML RSS feed and extract the 8 most recent and relevant crypto news articles.
 For each article, perform the following actions:
 1. Ensure the title is written in fluent, professional, and catchy English.
 2. Write a brief summary of about 2-3 sentences in clear English explaining the significance of the event.
@@ -545,7 +500,7 @@ Return strictly a JSON array of objects following this exact schema:
   }
 ]
 Return ONLY the raw JSON array, without any Markdown blocks.`
-      : `Tu es un rédacteur en chef expert pour Coinpaprika FR. Analyse le flux XML RSS fourni et extrait les 8 articles de presse crypto les plus récents et pertinents.
+      : `Tu es un rédacteur en chef expert pour Coinlore FR. Analyse le flux XML RSS fourni et extrait les 8 articles de presse crypto les plus récents et pertinents.
 Pour chaque article, effectue les actions suivantes :
 1. Traduis le titre de l'anglais vers un français fluide, professionnel et accrocheur.
 2. Rédige un résumé synthétique d'environ 2-3 phrases en français clair expliquant l'importance de l'événement.
@@ -612,7 +567,7 @@ app.get("/api/news", async (req, res) => {
     
     console.log(`Processing RSS feed with Gemini AI in ${lang}...`);
     const systemInstruction = lang === "en"
-      ? `You are an expert chief editor for Coinpaprika EN. Analyze the provided XML RSS feed and extract the 8 most recent and relevant crypto news articles.
+      ? `You are an expert chief editor for Coinlore EN. Analyze the provided XML RSS feed and extract the 8 most recent and relevant crypto news articles.
 For each article, perform the following actions:
 1. Ensure the title is written in fluent, professional, and catchy English.
 2. Write a brief summary of about 2-3 sentences in clear English explaining the significance of the event.
@@ -634,7 +589,7 @@ Return strictly a JSON array of objects following this exact schema:
   }
 ]
 Return ONLY the raw JSON array, without any Markdown blocks.`
-      : `Tu es un rédacteur en chef expert pour Coinpaprika FR. Analyse le flux XML RSS fourni et extrait les 8 articles de presse crypto les plus récents et pertinents.
+      : `Tu es un rédacteur en chef expert pour Coinlore FR. Analyse le flux XML RSS fourni et extrait les 8 articles de presse crypto les plus récents et pertinents.
 Pour chaque article, effectue les actions suivantes :
 1. Traduis le titre de l'anglais vers un français fluide, professionnel et accrocheur.
 2. Rédige un résumé synthétique d'environ 2-3 phrases en français clair expliquant l'importance de l'événement.

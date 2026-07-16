@@ -314,8 +314,8 @@ export const TrendNewsComparer: React.FC<TrendNewsComparerProps> = ({ type = "cr
                     <div className="mt-4 pt-3 border-t border-border-dark/60 flex items-center justify-between text-[10px] text-text-secondary">
                       <span>
                         {language === "en"
-                          ? (type === "ai" ? "Source: AI Research & RSS" : "Source: Coinpaprika & RSS")
-                          : (type === "ai" ? "Source : AI Research & RSS" : "Source : Coinpaprika & RSS")}
+                          ? (type === "ai" ? "Source: AI Research & RSS" : "Source: Coinlore & RSS")
+                          : (type === "ai" ? "Source : AI Research & RSS" : "Source : Coinlore & RSS")}
                       </span>
                       <span className="text-brand-yellow/80 font-mono">
                         {language === "en" ? "Analyzed live" : "Analysé en direct"}
