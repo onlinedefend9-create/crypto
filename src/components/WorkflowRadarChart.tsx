@@ -783,6 +783,7 @@ export const WorkflowRadarChart: React.FC<WorkflowRadarChartProps> = ({
             <button
               onClick={handleZoomOut}
               title="Zoom arrière"
+              aria-label="Zoom arrière"
               className="p-1.5 hover:bg-bg-card text-text-secondary hover:text-text-primary rounded transition cursor-pointer"
             >
               <ZoomOut className="h-4 w-4" />
@@ -790,6 +791,7 @@ export const WorkflowRadarChart: React.FC<WorkflowRadarChartProps> = ({
             <button
               onClick={handleResetZoom}
               title="Réinitialiser zoom"
+              aria-label="Réinitialiser zoom"
               className="px-2 text-[10px] font-mono text-text-secondary hover:text-text-primary hover:bg-bg-card rounded transition cursor-pointer"
             >
               {Math.round(zoomLevel * 100)}%
@@ -797,6 +799,7 @@ export const WorkflowRadarChart: React.FC<WorkflowRadarChartProps> = ({
             <button
               onClick={handleZoomIn}
               title="Zoom avant"
+              aria-label="Zoom avant"
               className="p-1.5 hover:bg-bg-card text-text-secondary hover:text-text-primary rounded transition cursor-pointer"
             >
               <ZoomIn className="h-4 w-4" />

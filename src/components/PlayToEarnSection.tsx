@@ -509,6 +509,8 @@ export default function PlayToEarnSection() {
                   <div className="flex items-center gap-2 bg-bg-main border border-border-dark rounded-xl px-2.5 py-1">
                     <Filter className="w-3.5 h-3.5 text-text-secondary" />
                     <select
+                      id="p2e-blockchain-select"
+                      aria-label="Filtrer par Blockchain"
                       value={blockchainFilter}
                       onChange={(e) => setBlockchainFilter(e.target.value)}
                       className="bg-transparent text-xs text-text-primary font-mono focus:outline-none cursor-pointer"
@@ -523,6 +525,8 @@ export default function PlayToEarnSection() {
                   <div className="flex items-center gap-2 bg-bg-main border border-border-dark rounded-xl px-2.5 py-1">
                     <Layers className="w-3.5 h-3.5 text-text-secondary" />
                     <select
+                      id="p2e-genre-select"
+                      aria-label="Filtrer par Genre"
                       value={genreFilter}
                       onChange={(e) => setGenreFilter(e.target.value)}
                       className="bg-transparent text-xs text-text-primary focus:outline-none cursor-pointer"
@@ -615,6 +619,8 @@ export default function PlayToEarnSection() {
                               <td className="py-3.5 px-4 text-center">
                                 <button
                                   onClick={(e) => handleFavoriteToggle(game.id, e)}
+                                  aria-label={isFav ? "Retirer des favoris" : "Ajouter aux favoris"}
+                                  title={isFav ? "Retirer des favoris" : "Ajouter aux favoris"}
                                   className="text-text-secondary hover:text-brand-yellow transition cursor-pointer"
                                 >
                                   <Star className={`w-4 h-4 ${isFav ? "fill-brand-yellow text-brand-yellow" : ""}`} />
@@ -889,7 +895,7 @@ export default function PlayToEarnSection() {
                         </div>
                       )}
 
-                      <p className="text-[9.5px] text-text-secondary/70 italic text-center font-mono">
+                      <p className="text-[9.5px] text-text-secondary italic text-center font-mono">
                         Les simulations sont indicatives et basées sur l'état actuel de la tokenomics.
                       </p>
                     </div>
@@ -1134,7 +1140,7 @@ export default function PlayToEarnSection() {
                           : "bg-bg-main border-border-dark text-text-secondary hover:text-text-primary hover:border-border-dark/80"
                       }`}
                     >
-                      <span className="text-[10px] opacity-70">{bc === "All" ? "Tous" : "Chain"}</span>
+                      <span className="text-[10px] text-text-secondary font-mono">{bc === "All" ? "Tous" : "Chain"}</span>
                       <span className="font-bold text-white text-[11px] block mt-1 truncate">{bc === "All" ? "Tous Frameworks" : bc}</span>
                     </button>
                   ))}

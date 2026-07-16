@@ -120,7 +120,7 @@ export const TrendNewsComparer: React.FC<TrendNewsComparerProps> = ({ type = "cr
   };
 
   return (
-    <div id="trend-news-comparer" className="w-full bg-bg-card border border-border-dark rounded-2xl p-6 relative overflow-hidden mt-6">
+    <div id="trend-news-comparer" className="w-full bg-black border border-border-dark rounded-2xl p-6 relative overflow-hidden mt-6">
       {/* Decorative background grid/radial glow */}
       <div className="absolute top-0 right-0 w-80 h-80 bg-brand-yellow/5 rounded-full blur-3xl pointer-events-none" />
       

@@ -167,7 +167,7 @@ export default function NewsSection({
             <p className="text-[10px] text-text-secondary mt-1 font-mono flex items-center gap-1">
               <span>{t.activeSync}</span>
               <span className="text-brand-yellow font-bold">{new Date(lastFetched).toLocaleTimeString()}</span>
-              <span className="text-[9px] text-text-secondary/60">{t.every10min}</span>
+              <span className="text-[9px] text-text-secondary">{t.every10min}</span>
             </p>
           )}
         </div>
@@ -221,6 +221,8 @@ export default function NewsSection({
 
           {/* Category dropdown selector */}
           <select
+            id="news-category-select"
+            aria-label={t.allCategories}
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
             className="bg-bg-main border border-border-dark text-text-primary text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-brand-yellow"

@@ -427,7 +427,7 @@ export const CryptoRadarChart: React.FC<CryptoRadarChartProps> = ({
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-bg-card border border-border-dark rounded-2xl p-6 relative overflow-hidden"
+      className="bg-black border border-border-dark rounded-2xl p-6 relative overflow-hidden"
       id="crypto-radar-widget"
       ref={containerRef}
     >
@@ -454,6 +454,7 @@ export const CryptoRadarChart: React.FC<CryptoRadarChartProps> = ({
             <button
               onClick={handleZoomOut}
               title="Zoom arrière"
+              aria-label="Zoom arrière"
               className="p-1.5 hover:bg-bg-card text-text-secondary hover:text-text-primary rounded transition"
             >
               <ZoomOut className="h-4 w-4" />
@@ -461,6 +462,7 @@ export const CryptoRadarChart: React.FC<CryptoRadarChartProps> = ({
             <button
               onClick={handleResetZoom}
               title="Réinitialiser zoom"
+              aria-label="Réinitialiser zoom"
               className="px-2 text-[10px] font-mono text-text-secondary hover:text-text-primary hover:bg-bg-card rounded transition"
             >
               {Math.round(zoomLevel * 100)}%
@@ -468,6 +470,7 @@ export const CryptoRadarChart: React.FC<CryptoRadarChartProps> = ({
             <button
               onClick={handleZoomIn}
               title="Zoom avant"
+              aria-label="Zoom avant"
               className="p-1.5 hover:bg-bg-card text-text-secondary hover:text-text-primary rounded transition"
             >
               <ZoomIn className="h-4 w-4" />
@@ -478,6 +481,7 @@ export const CryptoRadarChart: React.FC<CryptoRadarChartProps> = ({
           {onRefresh && (
             <button
               onClick={onRefresh}
+              aria-label="Actualiser les données"
               className="flex items-center gap-1.5 px-3 py-1.5 bg-bg-main hover:bg-bg-stat text-text-primary border border-border-dark text-xs rounded-lg transition"
             >
               <RefreshCw className="h-3.5 w-3.5" />
@@ -752,7 +756,7 @@ export const CryptoRadarChart: React.FC<CryptoRadarChartProps> = ({
               ? ["Agents", "Frameworks", "Usages", "Limites", "Futur"]
               : ["Pourquoi", "Comment", "Combien", "Si", "Où"];
 
-            return categoriesList.map(category => {
+            return categoriesList.map((category, index) => {
               const categoryNode = activeCoinData?.children?.find(cat => cat.name === category);
               const isCategoryHovered = hoveredPath.includes(category);
               const questions = categoryNode?.children || [];
@@ -760,30 +764,41 @@ export const CryptoRadarChart: React.FC<CryptoRadarChartProps> = ({
               return (
                 <div 
                   key={category}
-                  className={`bg-bg-main border rounded-xl p-3 flex flex-col justify-between transition-all duration-300 ${
-                    isCategoryHovered 
-                      ? "border-opacity-100 shadow-[0_0_12px_rgba(240,185,11,0.05)] bg-[#1e2329]/30" 
-                      : "border-border-dark/60"
+                  className={`border rounded-xl p-3 flex flex-col justify-between transition-all duration-300 ${
+                    index === 0 || index === 1 || index === 2 || index === 3 || index === 4
+                      ? ""
+                      : isCategoryHovered 
+                        ? "bg-[#1e2329]/30 border-opacity-100 shadow-[0_0_12px_rgba(240,185,11,0.05)]" 
+                        : "bg-bg-main border-border-dark/60"
                   }`}
                   style={{
-                    borderColor: isCategoryHovered ? activeColor : undefined
+                    backgroundColor: index === 0 ? "#ffa900" : (index === 1 ? "#390000" : (index === 2 ? "#000b26" : (index === 3 ? "#595959" : (index === 4 ? "#51feb6" : undefined)))),
+                    borderColor: index === 0 ? "#2c0000" : (index === 4 ? "#0c0c0c" : (isCategoryHovered ? activeColor : undefined)),
+                    color: (index === 0 || index === 4) ? "#000000" : undefined
                   }}
                 >
                   <div>
                     <div className="flex items-center justify-between border-b border-border-dark/60 pb-1.5 mb-2">
                       <span 
                         className="text-[11px] font-bold uppercase tracking-wider font-mono"
-                        style={{ color: isCategoryHovered ? "#ffffff" : activeColor }}
+                        style={{ color: (index === 0 || index === 4) ? "#000000" : (isCategoryHovered ? "#ffffff" : activeColor) }}
                       >
                         {category}
                       </span>
-                      <span className="text-[10px] text-text-secondary font-mono bg-bg-card px-1.5 py-0.5 rounded border border-border-dark/40">
+                      <span 
+                        className="text-[10px] font-mono px-1.5 py-0.5 rounded border"
+                        style={{
+                          color: (index === 0 || index === 4) ? "#000000" : "var(--text-secondary)",
+                          backgroundColor: (index === 0 || index === 4) ? "rgba(0,0,0,0.1)" : "var(--bg-card)",
+                          borderColor: (index === 0 || index === 4) ? "rgba(0,0,0,0.2)" : "rgba(255,255,255,0.1)"
+                        }}
+                      >
                         {questions.length}
                       </span>
                     </div>
 
                     {questions.length === 0 ? (
-                      <p className="text-[10px] text-text-secondary italic">Aucun signal sémantique</p>
+                      <p className="text-[10px] italic" style={{ color: (index === 0 || index === 4) ? "rgba(0,0,0,0.6)" : "var(--text-secondary)" }}>Aucun signal sémantique</p>
                     ) : (
                       <ul className="space-y-1.5">
                         {questions.map((q, idx) => {
@@ -794,15 +809,17 @@ export const CryptoRadarChart: React.FC<CryptoRadarChartProps> = ({
                               animate={isLeafHovered ? { scale: 1.02 } : { scale: 1 }}
                               className={`text-[11px] leading-relaxed p-1.5 rounded-lg transition-all duration-200 border ${
                                 isLeafHovered 
-                                  ? "bg-bg-card border-opacity-100 text-text-primary font-medium" 
-                                  : "bg-bg-card/40 border-transparent text-text-secondary hover:text-text-primary"
+                                  ? "border-opacity-100 font-medium" 
+                                  : "border-transparent"
                               }`}
                               style={{
-                                borderColor: isLeafHovered ? activeColor : undefined,
-                                boxShadow: isLeafHovered ? `0 0 10px ${activeColor}15` : undefined
+                                borderColor: isLeafHovered ? (index === 0 ? "#2c0000" : (index === 4 ? "#0c0c0c" : activeColor)) : undefined,
+                                boxShadow: isLeafHovered ? `0 0 10px ${activeColor}15` : undefined,
+                                color: (index === 0 || index === 4) ? "#000000" : undefined,
+                                backgroundColor: (index === 0 || index === 4) ? "rgba(255,255,255,0.2)" : (isLeafHovered ? "var(--bg-card)" : "rgba(255,255,255,0.02)")
                               }}
                             >
-                              <span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 animate-pulse" style={{ backgroundColor: activeColor }} />
+                              <span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 animate-pulse" style={{ backgroundColor: index === 0 ? "#2c0000" : (index === 4 ? "#0c0c0c" : activeColor) }} />
                               {q.name}
                             </motion.li>
                           );
@@ -811,7 +828,13 @@ export const CryptoRadarChart: React.FC<CryptoRadarChartProps> = ({
                     )}
                   </div>
                   
-                  <div className="mt-2 pt-2 border-t border-border-dark/30 flex justify-between items-center text-[9px] text-text-secondary font-mono">
+                  <div 
+                    className="mt-2 pt-2 border-t flex justify-between items-center text-[9px] font-mono"
+                    style={{
+                      borderColor: (index === 0 || index === 4) ? "rgba(0,0,0,0.15)" : "rgba(255,255,255,0.1)",
+                      color: (index === 0 || index === 4) ? "rgba(0,0,0,0.6)" : "var(--text-secondary)"
+                    }}
+                  >
                     <span>Axe cognitif</span>
                     <span className="opacity-40">➔</span>
                   </div>

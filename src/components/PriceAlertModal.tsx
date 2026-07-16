@@ -93,6 +93,7 @@ export default function PriceAlertModal({
           </div>
           <button
             onClick={onClose}
+            aria-label="Fermer la fenêtre d'alerte de prix"
             className="p-1.5 rounded-lg border border-border-dark bg-bg-main text-text-secondary hover:text-text-primary hover:border-text-secondary transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
@@ -137,7 +138,7 @@ export default function PriceAlertModal({
 
             {/* Quick shortcuts */}
             <div>
-              <span className="block text-[10px] font-bold text-text-secondary/80 uppercase tracking-widest mb-1.5">
+              <span className="block text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1.5">
                 Raccourcis rapides :
               </span>
               <div className="flex flex-wrap gap-1.5">
@@ -211,7 +212,7 @@ export default function PriceAlertModal({
             </h4>
 
             {coinAlerts.length === 0 ? (
-              <p className="text-xs text-text-secondary/75 italic bg-bg-main/40 border border-dashed border-border-dark/60 rounded-xl py-4 text-center">
+              <p className="text-xs text-text-secondary italic bg-bg-main/40 border border-dashed border-border-dark/60 rounded-xl py-4 text-center">
                 Aucune alerte de prix configurée pour cet actif.
               </p>
             ) : (
@@ -253,6 +254,7 @@ export default function PriceAlertModal({
                         onClick={() => onRemoveAlert(alert.id)}
                         className="p-1.5 rounded-lg hover:bg-price-red/10 hover:border-price-red/20 text-text-secondary hover:text-price-red transition-all cursor-pointer border border-transparent"
                         title="Supprimer l'alerte"
+                        aria-label="Supprimer l'alerte"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>

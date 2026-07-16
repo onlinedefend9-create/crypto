@@ -518,41 +518,41 @@ export default function App() {
   const footerT = {
     fr: {
       col1Desc: "Une plateforme complète de suivi d'actifs numériques. Clone d'apprentissage localisé en français avec données synthétisées en continu.",
-      col1Copyright: "© 2026 Coinlore Clone FR. Tous droits réservés.",
+      col1Copyright: "© 2026 ResumeFlow. Tous droits réservés.",
       col2Nav: "Navigation",
       tabPrices: "Prix des Cryptos",
       tabNews: "Actualités Crypto",
       tabAi: "Agents & Modèles IA",
       tabWorkflows: "Workflows IA",
       col3Title: "Responsabilité",
-      col3Desc: "Les prix et actualités sont fournis uniquement à titre indicatif et éducatif. Aucun élément présenté sur ce site ne constitue un conseil en investissement.",
+      col3Desc: "Les prix, actualités et données analytiques sont fournis à titre purement indicatif et informatif. Aucun élément publié sur ce site ne saurait être interprété comme un conseil en investissement, une sollicitation financière ou une recommandation officielle d'achat ou de vente d'actifs numériques.",
       col4Title: "Technologies",
       col5Title: "À propos",
-      col5Desc: "Ce clone reproduit l'identité visuelle de la version française de Coinlore, avec des optimisations techniques pour la fluidité d'affichage mobile et de bureau.",
+      col5Desc: "Cette plateforme reproduit l'identité visuelle de la version française de ResumeFlow, avec des optimisations techniques pour la fluidité d'affichage mobile et de bureau.",
       netWarnTitle: "Avertissement réseau",
-      netWarnDesc: "Le serveur Coinlore officiel est temporairement ralenti ou le quota est restreint. Des données de secours réalistes sont actuellement servies pour assurer un service ininterrompu."
+      netWarnDesc: "Le serveur ResumeFlow officiel est temporairement ralenti ou le quota est restreint. Des données de secours réalistes sont actuellement servies pour assurer un service ininterrompu."
     },
     en: {
       col1Desc: "A complete platform for tracking digital assets. Learning clone localized in English with continuously synthesized data.",
-      col1Copyright: "© 2026 Coinlore Clone EN. All rights reserved.",
+      col1Copyright: "© 2026 ResumeFlow. All rights reserved.",
       col2Nav: "Navigation",
       tabPrices: "Crypto Prices",
       tabNews: "Crypto News",
       tabAi: "AI Agents & Models",
       tabWorkflows: "AI Workflows",
       col3Title: "Disclaimer",
-      col3Desc: "Prices and news are provided for informational and educational purposes only. Nothing on this site constitutes investment advice.",
+      col3Desc: "Prices, news, and analytical data are provided strictly for informational and educational purposes. Nothing published on this platform should be construed as investment advice, a financial solicitation, or an official recommendation to buy or sell digital assets.",
       col4Title: "Technologies",
       col5Title: "About",
-      col5Desc: "This clone reproduces the visual identity of Coinlore, with technical optimizations for seamless mobile and desktop display.",
+      col5Desc: "This platform reproduces the visual identity of ResumeFlow, with technical optimizations for seamless mobile and desktop display.",
       netWarnTitle: "Network Alert",
-      netWarnDesc: "The official Coinlore server is temporarily slow or rate-limited. Realistic fallback data is currently being served to ensure uninterrupted service."
+      netWarnDesc: "The official ResumeFlow server is temporarily slow or rate-limited. Realistic fallback data is currently being served to ensure uninterrupted service."
     }
   }[language];
 
   return (
     <div className="min-h-screen bg-bg-main text-text-primary flex flex-col justify-between font-sans selection:bg-brand-yellow selection:text-bg-main">
-      <div>
+      <div className="bg-black">
         {/* Global Stats Bar */}
         <GlobalStatsBar
           stats={globalStats}
@@ -596,6 +596,7 @@ export default function App() {
                 onClick={() => setShowWarningBanner(false)}
                 className="text-text-secondary hover:text-text-primary p-1 rounded-lg hover:bg-bg-stat transition-colors cursor-pointer"
                 title={language === "en" ? "Dismiss" : "Ignorer"}
+                aria-label={language === "en" ? "Dismiss warning" : "Ignorer l'avertissement"}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -754,6 +755,7 @@ export default function App() {
                     prev.filter((n) => n.id !== notification.id)
                   );
                 }}
+                aria-label={language === "en" ? "Dismiss notification" : "Fermer la notification"}
                 className="p-1.5 rounded-lg hover:bg-bg-stat text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
@@ -764,18 +766,15 @@ export default function App() {
       </div>
 
       {/* Coinlore-styled Footing */}
-      <footer className="bg-bg-card border-t border-border-dark py-12 px-6 mt-12 font-sans">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-8">
+      <footer className="bg-black border-t border-border-dark py-12 px-6 mt-12 font-sans">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
           
           {/* Column 1: Logotype */}
           <div className="flex flex-col gap-3">
             <span className="font-extrabold text-lg text-text-primary tracking-tight">
-              coin<span className="text-brand-yellow">lore</span>
+              resume<span className="text-brand-yellow">flow</span>
             </span>
-            <p className="text-xs text-text-secondary leading-relaxed">
-              {footerT.col1Desc}
-            </p>
-            <span className="text-[10px] text-text-secondary/60 font-mono mt-2 block">
+            <span className="text-[10px] text-text-secondary font-mono mt-2 block">
               {footerT.col1Copyright}
             </span>
           </div>
@@ -854,32 +853,6 @@ export default function App() {
             </span>
             <p className="text-[11px] text-text-secondary leading-relaxed">
               {footerT.col3Desc}
-            </p>
-          </div>
-
-          {/* Column 4: Tech highlights */}
-          <div className="flex flex-col gap-3">
-            <span className="text-xs font-extrabold uppercase text-text-primary tracking-widest font-mono flex items-center gap-1.5">
-              <Award className="w-4 h-4 text-text-secondary" />
-              {footerT.col4Title}
-            </span>
-            <ul className="text-xs text-text-secondary flex flex-col gap-1.5 font-mono">
-              <li>• React 19 & Vite</li>
-              <li>• Node.js & Express</li>
-              <li>• Gemini 3.5 (IA)</li>
-              <li>• Recharts (Graphes)</li>
-              <li>• Motion (Animations)</li>
-            </ul>
-          </div>
-
-          {/* Column 5: Support / Community links */}
-          <div className="flex flex-col gap-3">
-            <span className="text-xs font-extrabold uppercase text-text-primary tracking-widest font-mono flex items-center gap-1.5">
-              <HelpCircle className="w-4 h-4 text-text-secondary" />
-              {footerT.col5Title}
-            </span>
-            <p className="text-[11px] text-text-secondary leading-relaxed">
-              {footerT.col5Desc}
             </p>
           </div>
 

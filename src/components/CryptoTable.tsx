@@ -160,7 +160,7 @@ export default function CryptoTable({
   };
 
   return (
-    <div className="bg-bg-card border border-border-dark rounded-2xl p-4 md:p-6 shadow-xl max-w-7xl mx-auto my-8 font-sans">
+    <div className="bg-black border border-border-dark rounded-2xl p-4 md:p-6 shadow-xl max-w-7xl mx-auto my-8 font-sans">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h2 className="text-lg font-extrabold text-text-primary flex items-center gap-2">
@@ -173,8 +173,10 @@ export default function CryptoTable({
 
         {/* Items per page selector */}
         <div className="flex items-center gap-2 text-xs text-text-secondary self-end sm:self-auto">
-          <span>{t.showBy}</span>
+          <label htmlFor="items-per-page-select" className="cursor-pointer">{t.showBy}</label>
           <select
+            id="items-per-page-select"
+            aria-label={t.showBy}
             value={itemsPerPage}
             onChange={(e) => {
               setItemsPerPage(Number(e.target.value));
@@ -344,6 +346,7 @@ export default function CryptoTable({
                         onClick={() => onSelectCoin(coin)}
                         className="p-1.5 rounded-lg bg-bg-main border border-border-dark text-text-secondary hover:text-brand-yellow hover:border-brand-yellow/30 transition-all cursor-pointer"
                         title={t.viewDetails}
+                        aria-label={t.viewDetails}
                       >
                         <Eye className="w-3.5 h-3.5" />
                       </button>
@@ -355,6 +358,7 @@ export default function CryptoTable({
                             : "bg-bg-main border-border-dark text-text-secondary hover:text-brand-yellow hover:border-brand-yellow/30"
                         }`}
                         title={t.setAlert}
+                        aria-label={t.setAlert}
                       >
                         <Bell className="w-3.5 h-3.5" />
                       </button>
@@ -382,6 +386,7 @@ export default function CryptoTable({
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
+              aria-label={language === "en" ? "Previous page" : "Page précédente"}
               className="p-1.5 rounded-lg border border-border-dark bg-bg-main text-text-secondary hover:text-text-primary hover:border-text-secondary disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -398,6 +403,7 @@ export default function CryptoTable({
                     {showEllipsis && <span className="px-1 text-border-dark">...</span>}
                     <button
                       onClick={() => handlePageChange(page)}
+                      aria-label={language === "en" ? `Page ${page}` : `Page ${page}`}
                       className={`px-3 py-1.5 rounded-lg border transition-all cursor-pointer font-bold ${
                         currentPage === page
                           ? "bg-brand-yellow border-brand-yellow text-bg-main"
@@ -413,6 +419,7 @@ export default function CryptoTable({
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
+              aria-label={language === "en" ? "Next page" : "Page suivante"}
               className="p-1.5 rounded-lg border border-border-dark bg-bg-main text-text-secondary hover:text-text-primary hover:border-text-secondary disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
             >
               <ChevronRight className="w-4 h-4" />

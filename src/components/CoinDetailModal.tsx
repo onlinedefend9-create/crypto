@@ -120,6 +120,7 @@ export default function CoinDetailModal({ coin, currency, onClose }: CoinDetailM
           {/* Close button */}
           <button
             onClick={onClose}
+            aria-label="Fermer la fenêtre"
             className="absolute top-6 right-6 p-1.5 rounded-lg bg-bg-main border border-border-dark text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />

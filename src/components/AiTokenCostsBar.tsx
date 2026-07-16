@@ -313,7 +313,7 @@ export default function AiTokenCostsBar({ language = "fr" }: { language?: "fr" |
   const tripledRow2 = [...row2Items, ...row2Items, ...row2Items];
 
   return (
-    <div className="relative w-full bg-slate-950 text-text-secondary text-[11px] border-b-2 border-brand-yellow/30 py-3.5 px-6 font-sans select-none z-40 overflow-hidden flex flex-col gap-3 shadow-lg shadow-brand-yellow/5">
+    <div className="relative w-full bg-black text-black text-[11px] border-b-2 border-brand-yellow/30 py-3.5 px-6 font-sans select-none z-40 overflow-hidden flex flex-col gap-3 shadow-lg shadow-brand-yellow/5">
       
       {/* Visual enhancement top subtle highlight line */}
       <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500 via-brand-yellow to-emerald-500 opacity-80" />

@@ -47,7 +47,7 @@ export default function Header({
   }[language];
 
   return (
-    <header className="bg-bg-card border-b border-border-dark sticky top-0 z-40 px-6 py-3">
+    <header className="bg-black border-b border-border-dark sticky top-0 z-40 px-6 py-3">
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         {/* Brand Logotype */}
         <div className="flex items-center justify-between">
