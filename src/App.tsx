@@ -14,6 +14,17 @@ import PlayToEarnSection from "./components/PlayToEarnSection";
 import { formatCurrency } from "./utils/formatters";
 import { TrendingUp, TrendingDown, RefreshCw, AlertTriangle, HelpCircle, Shield, Award, Bell, X, Coins, Newspaper, Cpu, Workflow, Sliders } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import {
+  BASELINE_CRYPTOS,
+  BASELINE_GLOBAL,
+  BASELINE_NEWS,
+  BASELINE_NEWS_EN,
+  BASELINE_AI_NEWS,
+  BASELINE_AI_NEWS_EN,
+  applyClientFluctuations,
+  getFallbackRadar,
+  getFallbackAiRadar,
+} from "./lib/fallbackData";
 
 export default function App() {
   const [coins, setCoins] = useState<Coin[]>([]);
@@ -58,26 +69,55 @@ export default function App() {
   const fetchCoins = async () => {
     try {
       setIsLoadingCoins(true);
-      const res = await fetch("/api/tickers");
-      if (!res.ok) {
-        throw new Error(`Server status: ${res.status}`);
+      setError(null);
+      let dataLoaded = false;
+
+      // Step 1: Try backend API
+      try {
+        const res = await fetch("/api/tickers");
+        if (res.ok) {
+          const contentType = res.headers.get("content-type");
+          if (contentType && contentType.includes("application/json")) {
+            const result = await res.json();
+            if (result && Array.isArray(result.data)) {
+              setCoins(result.data);
+              setIsFallbackMode(result.source === "fallback");
+              dataLoaded = true;
+            }
+          }
+        }
+      } catch (backendErr) {
+        console.warn("Backend API `/api/tickers` failed, trying public endpoint...", backendErr);
       }
-      const contentType = res.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        throw new Error(`Expected JSON, got: ${contentType}`);
+
+      // Step 2: Try direct public Coinpaprika API
+      if (!dataLoaded) {
+        try {
+          const res = await fetch("https://api.coinpaprika.com/v1/tickers?limit=150");
+          if (res.ok) {
+            const data = await res.json();
+            if (data && Array.isArray(data) && data.length > 0) {
+              setCoins(data);
+              setIsFallbackMode(true);
+              dataLoaded = true;
+            }
+          }
+        } catch (publicErr) {
+          console.warn("Direct Coinpaprika API failed, falling back to local baseline...", publicErr);
+        }
       }
-      const result = await res.json();
-      if (result && Array.isArray(result.data)) {
-        setCoins(result.data);
-        setError(null);
-        setIsFallbackMode(result.source === "fallback");
-      } else {
-        throw new Error("Impossible de charger le flux des prix des cryptos");
+
+      // Step 3: Use local baseline data
+      if (!dataLoaded) {
+        const baseline = applyClientFluctuations(BASELINE_CRYPTOS);
+        setCoins(baseline);
+        setIsFallbackMode(true);
       }
     } catch (err: any) {
       console.error("Failed to load tickers:", err);
-      setError("Erreur de connexion au serveur de prix. Veuillez réessayer.");
-      setIsFallbackMode(false);
+      const baseline = applyClientFluctuations(BASELINE_CRYPTOS);
+      setCoins(baseline);
+      setIsFallbackMode(true);
     } finally {
       setIsLoadingCoins(false);
     }
@@ -86,20 +126,56 @@ export default function App() {
   const fetchGlobalStats = async () => {
     try {
       setIsLoadingGlobal(true);
-      const res = await fetch("/api/global");
-      if (!res.ok) {
-        throw new Error(`Server status: ${res.status}`);
+      let dataLoaded = false;
+
+      // 1. Try backend
+      try {
+        const res = await fetch("/api/global");
+        if (res.ok) {
+          const contentType = res.headers.get("content-type");
+          if (contentType && contentType.includes("application/json")) {
+            const result = await res.json();
+            if (result && result.data) {
+              setGlobalStats(result.data);
+              dataLoaded = true;
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("Backend API `/api/global` failed", err);
       }
-      const contentType = res.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        throw new Error(`Expected JSON, got: ${contentType}`);
+
+      // 2. Try public API
+      if (!dataLoaded) {
+        try {
+          const res = await fetch("https://api.coinpaprika.com/v1/global");
+          if (res.ok) {
+            const data = await res.json();
+            if (data) {
+              const formattedStats = {
+                market_cap_usd: data.market_cap_usd,
+                volume_24h_usd: data.volume_24h_usd,
+                bitcoin_dominance_percentage: data.bitcoin_dominance_percentage,
+                cryptocurrencies_number: data.cryptocurrencies_number,
+                market_cap_change_24h: data.market_cap_change_24h,
+                volume_24h_change_24h: data.volume_24h_change_24h
+              };
+              setGlobalStats(formattedStats);
+              dataLoaded = true;
+            }
+          }
+        } catch (err) {
+          console.warn("Public global API failed", err);
+        }
       }
-      const result = await res.json();
-      if (result && result.data) {
-        setGlobalStats(result.data);
+
+      // 3. Use baseline
+      if (!dataLoaded) {
+        setGlobalStats(BASELINE_GLOBAL);
       }
     } catch (err) {
       console.error("Failed to load global market stats:", err);
+      setGlobalStats(BASELINE_GLOBAL);
     } finally {
       setIsLoadingGlobal(false);
     }
@@ -108,23 +184,38 @@ export default function App() {
   const fetchNews = async (currentLang = language) => {
     try {
       setIsLoadingNews(true);
-      const res = await fetch(`/api/news?lang=${currentLang}`);
-      if (!res.ok) {
-        throw new Error(`Server status: ${res.status}`);
-      }
-      const contentType = res.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        throw new Error(`Expected JSON, got: ${contentType}`);
-      }
-      const result = await res.json();
-      if (result && Array.isArray(result.data)) {
-        setNews(result.data);
-        if (result.lastFetched) {
-          setNewsLastFetched(result.lastFetched);
+      let dataLoaded = false;
+
+      // 1. Try backend
+      try {
+        const res = await fetch(`/api/news?lang=${currentLang}`);
+        if (res.ok) {
+          const contentType = res.headers.get("content-type");
+          if (contentType && contentType.includes("application/json")) {
+            const result = await res.json();
+            if (result && Array.isArray(result.data)) {
+              setNews(result.data);
+              if (result.lastFetched) {
+                setNewsLastFetched(result.lastFetched);
+              }
+              dataLoaded = true;
+            }
+          }
         }
+      } catch (err) {
+        console.warn("Backend API `/api/news` failed", err);
+      }
+
+      // 2. Use baseline
+      if (!dataLoaded) {
+        const baseline = currentLang === "en" ? BASELINE_NEWS_EN : BASELINE_NEWS;
+        setNews(baseline);
+        setNewsLastFetched(Date.now());
       }
     } catch (err) {
       console.error("Failed to load news feed:", err);
+      const baseline = currentLang === "en" ? BASELINE_NEWS_EN : BASELINE_NEWS;
+      setNews(baseline);
     } finally {
       setIsLoadingNews(false);
     }
@@ -133,16 +224,29 @@ export default function App() {
   const fetchRadar = async (activeCoins = selectedRadarCoins, currentLang = language) => {
     try {
       setIsLoadingRadar(true);
-      const res = await fetch(`/api/radar?coins=${activeCoins.join(",")}&lang=${currentLang}`);
-      if (!res.ok) {
-        throw new Error(`Server status: ${res.status}`);
+      let dataLoaded = false;
+
+      // 1. Try backend
+      try {
+        const res = await fetch(`/api/radar?coins=${activeCoins.join(",")}&lang=${currentLang}`);
+        if (res.ok) {
+          const result = await res.json();
+          if (result) {
+            setRadarData(result);
+            dataLoaded = true;
+          }
+        }
+      } catch (err) {
+        console.warn("Backend API `/api/radar` failed", err);
       }
-      const result = await res.json();
-      if (result) {
-        setRadarData(result);
+
+      // 2. Use fallback builder
+      if (!dataLoaded) {
+        setRadarData(getFallbackRadar(activeCoins, currentLang));
       }
     } catch (err) {
       console.error("Failed to load radar data:", err);
+      setRadarData(getFallbackRadar(activeCoins, currentLang));
     } finally {
       setIsLoadingRadar(false);
     }
@@ -151,19 +255,35 @@ export default function App() {
   const fetchAiNews = async (currentLang = language) => {
     try {
       setIsLoadingAiNews(true);
-      const res = await fetch(`/api/ai/news?lang=${currentLang}`);
-      if (!res.ok) {
-        throw new Error(`Server status: ${res.status}`);
-      }
-      const result = await res.json();
-      if (result && Array.isArray(result.data)) {
-        setAiNews(result.data);
-        if (result.lastFetched) {
-          setAiNewsLastFetched(result.lastFetched);
+      let dataLoaded = false;
+
+      // 1. Try backend
+      try {
+        const res = await fetch(`/api/ai/news?lang=${currentLang}`);
+        if (res.ok) {
+          const result = await res.json();
+          if (result && Array.isArray(result.data)) {
+            setAiNews(result.data);
+            if (result.lastFetched) {
+              setAiNewsLastFetched(result.lastFetched);
+            }
+            dataLoaded = true;
+          }
         }
+      } catch (err) {
+        console.warn("Backend API `/api/ai/news` failed", err);
+      }
+
+      // 2. Use baseline
+      if (!dataLoaded) {
+        const baseline = currentLang === "en" ? BASELINE_AI_NEWS_EN : BASELINE_AI_NEWS;
+        setAiNews(baseline);
+        setAiNewsLastFetched(Date.now());
       }
     } catch (err) {
       console.error("Failed to load AI news feed:", err);
+      const baseline = currentLang === "en" ? BASELINE_AI_NEWS_EN : BASELINE_AI_NEWS;
+      setAiNews(baseline);
     } finally {
       setIsLoadingAiNews(false);
     }
@@ -172,16 +292,29 @@ export default function App() {
   const fetchAiRadar = async (activeModels = selectedAiRadarModels, currentLang = language) => {
     try {
       setIsLoadingAiRadar(true);
-      const res = await fetch(`/api/ai/radar?coins=${activeModels.join(",")}&lang=${currentLang}`);
-      if (!res.ok) {
-        throw new Error(`Server status: ${res.status}`);
+      let dataLoaded = false;
+
+      // 1. Try backend
+      try {
+        const res = await fetch(`/api/ai/radar?coins=${activeModels.join(",")}&lang=${currentLang}`);
+        if (res.ok) {
+          const result = await res.json();
+          if (result) {
+            setAiRadarData(result);
+            dataLoaded = true;
+          }
+        }
+      } catch (err) {
+        console.warn("Backend API `/api/ai/radar` failed", err);
       }
-      const result = await res.json();
-      if (result) {
-        setAiRadarData(result);
+
+      // 2. Use fallback builder
+      if (!dataLoaded) {
+        setAiRadarData(getFallbackAiRadar(activeModels, currentLang));
       }
     } catch (err) {
       console.error("Failed to load AI radar data:", err);
+      setAiRadarData(getFallbackAiRadar(activeModels, currentLang));
     } finally {
       setIsLoadingAiRadar(false);
     }
