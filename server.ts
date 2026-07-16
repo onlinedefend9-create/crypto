@@ -330,6 +330,43 @@ function applyFluctuations(tickers: any[]) {
   });
 }
 
+function mapCoinloreToCoinpaprika(coinloreCoin: any) {
+  const symbol = (coinloreCoin.symbol || "").toUpperCase();
+  const name = coinloreCoin.name || "";
+  const cleanName = name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  const coinId = `${symbol.toLowerCase()}-${cleanName}`;
+  
+  return {
+    id: coinId,
+    name: name,
+    symbol: symbol,
+    rank: Number(coinloreCoin.rank || 0),
+    quotes: {
+      USD: {
+        price: Number(coinloreCoin.price_usd || 0),
+        percent_change_1h: Number(coinloreCoin.percent_change_1h || 0),
+        percent_change_24h: Number(coinloreCoin.percent_change_24h || 0),
+        percent_change_7d: Number(coinloreCoin.percent_change_7d || 0),
+        market_cap: Number(coinloreCoin.market_cap_usd || 0),
+        volume_24h: Number(coinloreCoin.volume24 || 0)
+      }
+    }
+  };
+}
+
+function mapCoinloreGlobalToCoinpaprika(coinloreGlobal: any) {
+  const stats = Array.isArray(coinloreGlobal) ? coinloreGlobal[0] : coinloreGlobal;
+  if (!stats) return null;
+  return {
+    market_cap_usd: Number(stats.total_mcap || 0),
+    volume_24h_usd: Number(stats.total_volume || 0),
+    bitcoin_dominance_percentage: Number(stats.btc_d || 0),
+    cryptocurrencies_number: Number(stats.coins_count || 0),
+    market_cap_change_24h: Number(stats.mcap_change || 0),
+    volume_24h_change_24h: Number(stats.volume_change || 0)
+  };
+}
+
 // 1. API: GET /api/tickers
 app.get("/api/tickers", async (req, res) => {
   const now = Date.now();
@@ -342,28 +379,49 @@ app.get("/api/tickers", async (req, res) => {
     });
   }
   
+  // Try Coinlore API (primary)
   try {
-    console.log("Fetching fresh tickers from Coinpaprika API...");
-    const response = await fetch("https://api.coinpaprika.com/v1/tickers?limit=150");
+    console.log("Fetching fresh tickers from Coinlore API (Primary)...");
+    const response = await fetch("https://api.coinlore.net/api/tickers/?start=0&limit=100");
     if (!response.ok) {
-      throw new Error(`Coinpaprika API returned status ${response.status}`);
+      throw new Error(`Coinlore API returned status ${response.status}`);
     }
-    const data = await response.json();
-    if (data && Array.isArray(data) && data.length > 0) {
-      cachedTickers = data;
+    const result = await response.json();
+    if (result && Array.isArray(result.data) && result.data.length > 0) {
+      const mapped = result.data.map(mapCoinloreToCoinpaprika);
+      cachedTickers = mapped;
       tickersLastFetched = now;
-      return res.json({ source: "api", data });
+      return res.json({ source: "api", data: mapped });
     } else {
-      throw new Error("Invalid or empty data from Coinpaprika API");
+      throw new Error("Invalid or empty data from Coinlore API");
     }
-  } catch (error: any) {
-    console.log(`[Market Info] Serving tickers fallback baseline (API is busy or offline)`);
-    // If we have any cache, use it as fallback. If not, use baseline cryptos
-    const fallbackData = cachedTickers || BASELINE_CRYPTOS;
-    return res.json({
-      source: "fallback",
-      data: applyFluctuations(fallbackData)
-    });
+  } catch (coinloreError: any) {
+    console.warn("Coinlore API failed, trying Coinpaprika API...", coinloreError.message);
+    
+    // Try Coinpaprika API (secondary)
+    try {
+      console.log("Fetching fresh tickers from Coinpaprika API...");
+      const response = await fetch("https://api.coinpaprika.com/v1/tickers?limit=150");
+      if (!response.ok) {
+        throw new Error(`Coinpaprika API returned status ${response.status}`);
+      }
+      const data = await response.json();
+      if (data && Array.isArray(data) && data.length > 0) {
+        cachedTickers = data;
+        tickersLastFetched = now;
+        return res.json({ source: "api", data });
+      } else {
+        throw new Error("Invalid or empty data from Coinpaprika API");
+      }
+    } catch (error: any) {
+      console.log(`[Market Info] Serving tickers fallback baseline (API is busy or offline)`);
+      // If we have any cache, use it as fallback. If not, use baseline cryptos
+      const fallbackData = cachedTickers || BASELINE_CRYPTOS;
+      return res.json({
+        source: "fallback",
+        data: applyFluctuations(fallbackData)
+      });
+    }
   }
 });
 
@@ -375,31 +433,52 @@ app.get("/api/global", async (req, res) => {
     return res.json({ source: "cache", data: cachedGlobalStats });
   }
   
+  // Try Coinlore API (primary)
   try {
-    console.log("Fetching global stats from Coinpaprika API...");
-    const response = await fetch("https://api.coinpaprika.com/v1/global");
+    console.log("Fetching global stats from Coinlore API (Primary)...");
+    const response = await fetch("https://api.coinlore.net/api/global/");
     if (!response.ok) {
-      throw new Error(`Coinpaprika API returned status ${response.status}`);
+      throw new Error(`Coinlore API returned status ${response.status}`);
     }
-    const data = await response.json();
-    if (data) {
-      cachedGlobalStats = {
-        market_cap_usd: data.market_cap_usd,
-        volume_24h_usd: data.volume_24h_usd,
-        bitcoin_dominance_percentage: data.bitcoin_dominance_percentage,
-        cryptocurrencies_number: data.cryptocurrencies_number,
-        market_cap_change_24h: data.market_cap_change_24h,
-        volume_24h_change_24h: data.volume_24h_change_24h
-      };
+    const result = await response.json();
+    const mapped = mapCoinloreGlobalToCoinpaprika(result);
+    if (mapped) {
+      cachedGlobalStats = mapped;
       globalStatsLastFetched = now;
-      return res.json({ source: "api", data: cachedGlobalStats });
+      return res.json({ source: "api", data: mapped });
     } else {
-      throw new Error("Invalid data from Coinpaprika API");
+      throw new Error("Invalid data from Coinlore API");
     }
-  } catch (error: any) {
-    console.log(`[Market Info] Serving global stats fallback baseline (API is busy or offline)`);
-    const fallbackData = cachedGlobalStats || BASELINE_GLOBAL;
-    return res.json({ source: "fallback", data: fallbackData });
+  } catch (coinloreError: any) {
+    console.warn("Coinlore Global API failed, trying Coinpaprika...", coinloreError.message);
+    
+    // Try Coinpaprika (secondary)
+    try {
+      console.log("Fetching global stats from Coinpaprika API...");
+      const response = await fetch("https://api.coinpaprika.com/v1/global");
+      if (!response.ok) {
+        throw new Error(`Coinpaprika API returned status ${response.status}`);
+      }
+      const data = await response.json();
+      if (data) {
+        cachedGlobalStats = {
+          market_cap_usd: data.market_cap_usd,
+          volume_24h_usd: data.volume_24h_usd,
+          bitcoin_dominance_percentage: data.bitcoin_dominance_percentage,
+          cryptocurrencies_number: data.cryptocurrencies_number,
+          market_cap_change_24h: data.market_cap_change_24h,
+          volume_24h_change_24h: data.volume_24h_change_24h
+        };
+        globalStatsLastFetched = now;
+        return res.json({ source: "api", data: cachedGlobalStats });
+      } else {
+        throw new Error("Invalid data from Coinpaprika API");
+      }
+    } catch (error: any) {
+      console.log(`[Market Info] Serving global stats fallback baseline (API is busy or offline)`);
+      const fallbackData = cachedGlobalStats || BASELINE_GLOBAL;
+      return res.json({ source: "fallback", data: fallbackData });
+    }
   }
 });
 

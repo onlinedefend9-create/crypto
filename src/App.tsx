@@ -90,20 +90,55 @@ export default function App() {
         console.warn("Backend API `/api/tickers` failed, trying public endpoint...", backendErr);
       }
 
-      // Step 2: Try direct public Coinpaprika API
+      // Step 2: Try direct public Coinlore API
       if (!dataLoaded) {
         try {
-          const res = await fetch("https://api.coinpaprika.com/v1/tickers?limit=150");
+          const res = await fetch("https://api.coinlore.net/api/tickers/?start=0&limit=100");
           if (res.ok) {
-            const data = await res.json();
-            if (data && Array.isArray(data) && data.length > 0) {
-              setCoins(data);
+            const result = await res.json();
+            if (result && Array.isArray(result.data) && result.data.length > 0) {
+              const mapped = result.data.map((coinloreCoin: any) => {
+                const symbol = (coinloreCoin.symbol || "").toUpperCase();
+                const name = coinloreCoin.name || "";
+                const cleanName = name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+                const coinId = `${symbol.toLowerCase()}-${cleanName}`;
+                return {
+                  id: coinId,
+                  name: name,
+                  symbol: symbol,
+                  rank: Number(coinloreCoin.rank || 0),
+                  quotes: {
+                    USD: {
+                      price: Number(coinloreCoin.price_usd || 0),
+                      percent_change_1h: Number(coinloreCoin.percent_change_1h || 0),
+                      percent_change_24h: Number(coinloreCoin.percent_change_24h || 0),
+                      percent_change_7d: Number(coinloreCoin.percent_change_7d || 0),
+                      market_cap: Number(coinloreCoin.market_cap_usd || 0),
+                      volume_24h: Number(coinloreCoin.volume24 || 0)
+                    }
+                  }
+                };
+              });
+              setCoins(mapped);
               setIsFallbackMode(true);
               dataLoaded = true;
             }
           }
         } catch (publicErr) {
-          console.warn("Direct Coinpaprika API failed, falling back to local baseline...", publicErr);
+          console.warn("Direct Coinlore API failed, trying Coinpaprika API...", publicErr);
+          try {
+            const res = await fetch("https://api.coinpaprika.com/v1/tickers?limit=150");
+            if (res.ok) {
+              const data = await res.json();
+              if (data && Array.isArray(data) && data.length > 0) {
+                setCoins(data);
+                setIsFallbackMode(true);
+                dataLoaded = true;
+              }
+            }
+          } catch (pErr) {
+            console.warn("Direct Coinpaprika API failed", pErr);
+          }
         }
       }
 
@@ -145,27 +180,48 @@ export default function App() {
         console.warn("Backend API `/api/global` failed", err);
       }
 
-      // 2. Try public API
+      // 2. Try public Coinlore API first, then Coinpaprika
       if (!dataLoaded) {
         try {
-          const res = await fetch("https://api.coinpaprika.com/v1/global");
+          const res = await fetch("https://api.coinlore.net/api/global/");
           if (res.ok) {
-            const data = await res.json();
-            if (data) {
+            const result = await res.json();
+            const stats = Array.isArray(result) ? result[0] : result;
+            if (stats) {
               const formattedStats = {
-                market_cap_usd: data.market_cap_usd,
-                volume_24h_usd: data.volume_24h_usd,
-                bitcoin_dominance_percentage: data.bitcoin_dominance_percentage,
-                cryptocurrencies_number: data.cryptocurrencies_number,
-                market_cap_change_24h: data.market_cap_change_24h,
-                volume_24h_change_24h: data.volume_24h_change_24h
+                market_cap_usd: Number(stats.total_mcap || 0),
+                volume_24h_usd: Number(stats.total_volume || 0),
+                bitcoin_dominance_percentage: Number(stats.btc_d || 0),
+                cryptocurrencies_number: Number(stats.coins_count || 0),
+                market_cap_change_24h: Number(stats.mcap_change || 0),
+                volume_24h_change_24h: Number(stats.volume_change || 0)
               };
               setGlobalStats(formattedStats);
               dataLoaded = true;
             }
           }
         } catch (err) {
-          console.warn("Public global API failed", err);
+          console.warn("Direct Coinlore Global API failed, trying Coinpaprika...", err);
+          try {
+            const res = await fetch("https://api.coinpaprika.com/v1/global");
+            if (res.ok) {
+              const data = await res.json();
+              if (data) {
+                const formattedStats = {
+                  market_cap_usd: data.market_cap_usd,
+                  volume_24h_usd: data.volume_24h_usd,
+                  bitcoin_dominance_percentage: data.bitcoin_dominance_percentage,
+                  cryptocurrencies_number: data.cryptocurrencies_number,
+                  market_cap_change_24h: data.market_cap_change_24h,
+                  volume_24h_change_24h: data.volume_24h_change_24h
+                };
+                setGlobalStats(formattedStats);
+                dataLoaded = true;
+              }
+            }
+          } catch (err2) {
+            console.warn("Direct Coinpaprika Global API failed too", err2);
+          }
         }
       }
 
