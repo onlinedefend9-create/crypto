@@ -373,6 +373,86 @@ export default function App() {
     fetchGlobalStats();
   }, []);
 
+  // Advanced Dynamic SEO & AI Engine Search Optimization (AEO) Engine
+  useEffect(() => {
+    const seoConfig = {
+      fr: {
+        prices: {
+          title: "ResumeFlow | Cours Crypto en Direct, Prix Bitcoin, Ethereum & Altcoins",
+          desc: "Suivez en temps réel les cours des crypto-actifs. Consultez le prix du Bitcoin, de l'Ethereum, de Solana et configurez vos alertes de prix personnalisées.",
+          keywords: "ResumeFlow, cours crypto, prix bitcoin, prix ethereum, cours solana, alertes prix crypto, suivi altcoin, blockchain"
+        },
+        news: {
+          title: "ResumeFlow | Actualités Crypto, Tendances Marché & Analyses Web3",
+          desc: "Restez informé avec l'actualité crypto de dernière minute. Analyses de marché, régulation, tendances institutionnelles et innovations technologiques.",
+          keywords: "actualites crypto, nouvelles bitcoin, tendances crypto, news blockchain, web3, crypto fr, analyse marche crypto"
+        },
+        ai_trends: {
+          title: "ResumeFlow | Comparatif Prix Tokens LLM, Modèles IA & Agents",
+          desc: "Comparez le coût par million de tokens des modèles IA (Gemini, Claude, GPT-4o, DeepSeek, Qwen). Visualisez les performances de vos agents intelligents.",
+          keywords: "comparatif LLM, prix token IA, cout jeton IA, tarif Gemini, Claude 3.5 price, GPT-4o cost, DeepSeek intelligence, agents autonomes"
+        },
+        workflows: {
+          title: "ResumeFlow | Bibliothèque de Workflows IA & Modèles d'Automatisation",
+          desc: "Déployez des automatisations intelligentes grâce à nos modèles de workflows multi-agents, pipelines RAG et intégrations d'APIs tierces.",
+          keywords: "workflow IA, automatisation IA, RAG pipeline, chaine agents, prompt engineering, agent intelligent, api ia"
+        },
+        p2e: {
+          title: "ResumeFlow | Meilleurs Jeux Play-to-Earn & Stats Crypto Gaming",
+          desc: "Explorez les meilleurs jeux Play-To-Earn (P2E) blockchain. Statistiques d'utilisateurs actifs, volumes de transactions et comparatif des tokens de jeu.",
+          keywords: "play to earn, p2e, crypto gaming, jeux blockchain, token gamefi, gamefi stats, nft games"
+        }
+      },
+      en: {
+        prices: {
+          title: "ResumeFlow | Live Crypto Prices, Bitcoin Tracker & Market Cap",
+          desc: "Track live cryptocurrency rates in real-time. Monitor Bitcoin, Ethereum, Solana, and set custom price-drop alerts instantly.",
+          keywords: "ResumeFlow, live crypto prices, bitcoin tracker, ethereum rate, solana live, crypto market cap, price alerts, altcoins"
+        },
+        news: {
+          title: "ResumeFlow | Live Crypto News, Web3 Trends & Analysis",
+          desc: "Stay ahead with breaking cryptocurrency news, deep market insights, institutional trends, and latest regulatory updates.",
+          keywords: "crypto news, bitcoin news, blockchain updates, web3 intelligence, crypto analysis, breaking crypto"
+        },
+        ai_trends: {
+          title: "ResumeFlow | LLM Token Price Comparison & AI Agent Metrics",
+          desc: "Compare the cost per million tokens across leading LLMs including Gemini, Claude, GPT-4o, and DeepSeek. Optimize AI agent runtime budgets.",
+          keywords: "LLM cost comparison, AI token prices, Claude 3.5 price, Gemini pricing, GPT-4o token cost, DeepSeek api price, multi-agent cost"
+        },
+        workflows: {
+          title: "ResumeFlow | AI Automation Workflow Library & Agent Blueprints",
+          desc: "Build and deploy autonomous agent workflows, advanced RAG systems, and smart third-party API orchestrations.",
+          keywords: "AI workflows, automation blueprints, multi-agent orchestrator, RAG system, prompt engineering, agent frameworks"
+        },
+        p2e: {
+          title: "ResumeFlow | Best Play-to-Earn Games & GameFi Market Stats",
+          desc: "Discover high-performing Play-To-Earn (P2E) blockchain games. Monitor active user metrics, trading volumes, and game token charts.",
+          keywords: "play to earn, p2e games, crypto gaming, gamefi metrics, blockchain gaming, play to earn list, web3 gaming"
+        }
+      }
+    };
+
+    const currentSeo = seoConfig[language]?.[activeTab] || seoConfig[language]?.prices;
+    
+    // Update Title
+    document.title = currentSeo.title;
+
+    // Update HTML Lang attribute dynamically
+    document.documentElement.lang = language;
+
+    // Update Meta Description
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) {
+      metaDesc.setAttribute("content", currentSeo.desc);
+    }
+
+    // Update Meta Keywords
+    const metaKeywords = document.querySelector('meta[name="keywords"]');
+    if (metaKeywords) {
+      metaKeywords.setAttribute("content", currentSeo.keywords);
+    }
+  }, [language, activeTab]);
+
   // Language-dependent Data Load (fires on mount AND when language toggles)
   useEffect(() => {
     fetchNews(language);
